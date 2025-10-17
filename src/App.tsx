@@ -1,17 +1,13 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
+import HostPage from './pages/HostPage'
+import JoinPage from './pages/JoinPage'
+import LoginPage from './pages/LoginPage'
+import NavBar from './components/NavBar'
 
 function App() {
   function Home() {
     return <h1>Home Page</h1>
-  }
-
-  function Host() {
-    return <h1>Host</h1>
-  }
-
-  function Join() {
-    return <h1>Join</h1>
   }
 
   function Rules() {
@@ -20,18 +16,14 @@ function App() {
 
   return (
     <BrowserRouter>
-      <nav>
-        <Link to="/">Home</Link>
-        <Link to="/host">Host</Link>
-        <Link to="/join">Join</Link>
-        <Link to="/rules">Rules</Link>
-      </nav>
+      <NavBar />
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/host" element={<Host />} />
-        <Route path="/join" element={<Join />} />
+        <Route path="/host" element={<HostPage />} />
+        <Route path="/join" element={<JoinPage />} />
         <Route path="/rules" element={<Rules />} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </BrowserRouter>
   )
