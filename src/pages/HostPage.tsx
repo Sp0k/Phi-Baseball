@@ -3,7 +3,7 @@ import { GAMESTAGES, type GameStage } from "@/models/game-stage";
 import { type Room } from "@/models/room";
 import NewGameForm from "@/components/HostComponents/NewGameForm";
 import Lobby from "@/components/HostComponents/Lobby";
-import { getRememberedCode } from "@/services/host-room-pointer-service";
+import { endRoomAndForget, getRememberedCode } from "@/services/host-room-pointer-service";
 import { restoreRoomFromStorage } from "@/services/room-lookup-service";
 
 function HostPage() {
@@ -22,8 +22,13 @@ function HostPage() {
   }, []);
 
   useEffect(() => {
-    setGameStage((room === null) ? GAMESTAGES.PREGAME : GAMESTAGES.LOBBY);
+    setGameStage((room === null) ? GAMESTAGES.PREGAME : room.gameStage);
   }, [room]);
+
+  const tmpEndGame = async () => {
+    room !== null && await endRoomAndForget(room.id);
+    setRoom(null);
+  }
 
   return (
     <div>
@@ -32,7 +37,10 @@ function HostPage() {
         (gameStage === GAMESTAGES.PREGAME) && <NewGameForm roomCallback={(room) => setRoom(room)} />
       }
       {
-        (gameStage === GAMESTAGES.LOBBY) && <Lobby room={room} />
+        (gameStage === GAMESTAGES.LOBBY) && <Lobby room={room} gameStateCallback={(gameStage) => setGameStage(gameStage)} />
+      }
+      {
+        (gameStage === GAMESTAGES.ACTIVE) && <button onClick={tmpEndGame}>End Game</button>
       }
     </div>
   );

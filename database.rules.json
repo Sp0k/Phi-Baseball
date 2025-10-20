@@ -11,7 +11,7 @@
         "state": {
           ".read": "auth != null",
           ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
-          ".validate": "newData.isString() && (newData.val() === 'lobby' || newData.val() === 'playing' || newData.val() === 'done')"
+          ".validate": "newData.isString() && (newData.val() === 'lobby' || newData.val() === 'active' || newData.val() === 'done')"
         },
 
         "factQuantity": {

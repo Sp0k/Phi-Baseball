@@ -1,7 +1,7 @@
 import { db } from "@/firebase";
 import { roomRefKey } from "./room-service";
 import { GAMESTAGES } from "@/models/game-stage";
-import { ref, update, serverTimestamp } from "firebase/database";
+import { ref, update } from "firebase/database";
 import { lsDel, lsGet, lsSet } from "@/lib/storage";
 
 const KEY = "host_room_code";
@@ -16,8 +16,7 @@ export function getRememberedCode(): string | null {
 
 export async function endRoomAndForget(code: string) {
   await update(ref(db, `${roomRefKey}/${code}`), {
-    state: GAMESTAGES.ENDED,
-    endedAt: serverTimestamp(),
+    state: GAMESTAGES.DONE,
   });
   lsDel(KEY);
 }

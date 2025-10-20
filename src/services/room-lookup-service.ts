@@ -3,6 +3,7 @@ import { child, ref, get } from "firebase/database";
 import { type Room, ROOMFIELDS } from "@/models/room";
 import { getRememberedCode, forgetHostRoom } from "./host-room-pointer-service";
 import { roomRefKey } from "./room-service";
+import { GAMESTAGES } from "@/models/game-stage";
 
 export async function restoreRoomFromStorage(): Promise<Room | null> {
   const uid = auth.currentUser?.uid;
@@ -13,28 +14,40 @@ export async function restoreRoomFromStorage(): Promise<Room | null> {
 
   const base = ref(db, `${roomRefKey}/${code}`);
 
-  const [hostUidSnap, stateSnap, fqSnap, createdSnap] = await Promise.all([
+  const [hostUidSnap] = await Promise.all([
     get(child(base, ROOMFIELDS.HOSTUID)),
+  ]);
+
+  if (!hostUidSnap.exists() || hostUidSnap.val() !== uid) {
+    forgetHostRoom();
+    return null;
+  }
+
+  return await fetchRoomData(code);
+}
+
+export async function getRoomFromCode(code: string): Promise<Room | null> {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return null;
+
+  return await fetchRoomData(code);
+}
+
+async function fetchRoomData(code: string): Promise<Room | null> {
+  const base = ref(db, `${roomRefKey}/${code}`);
+  const [stateSnap, fqSnap, createdSnap] = await Promise.all([
     get(child(base, ROOMFIELDS.STATE)),
     get(child(base, ROOMFIELDS.FACTQUANTITY)),
     get(child(base, ROOMFIELDS.CREATEDAT)),
   ]);
 
-  if (
-    !hostUidSnap.exists() ||
-    hostUidSnap.val() !== uid ||
-    !stateSnap.exists() ||
-    stateSnap.val() === "ended"
-  ) {
-    forgetHostRoom();
-    return null;
-  }
-
+  if (!stateSnap.exists() || stateSnap.val() === GAMESTAGES.DONE) return null;
+  
   const room: Room = {
     id: code,
     factQuantity: fqSnap.val(),
     createdAt: createdSnap.val(),
-    gameStage: stateSnap.val(), 
+    gameStage: stateSnap.val(),
   }
 
   return room;
