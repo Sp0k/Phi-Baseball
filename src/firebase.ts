@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInAnonymously, connectAuthEmulator } from "firebase/auth";
+import { getAuth, signInAnonymously, connectAuthEmulator, browserLocalPersistence, setPersistence } from "firebase/auth";
 import { getDatabase, connectDatabaseEmulator } from "firebase/database";
 
 const firebaseConfig = {
@@ -20,6 +20,8 @@ if (import.meta.env.DEV) {
   connectAuthEmulator(auth, "http://127.0.0.1:9099");
   connectDatabaseEmulator(db, "127.0.0.1", 9000);
 }
+
+setPersistence(auth, browserLocalPersistence);
 
 export async function ensureAnon() {
   if (!auth.currentUser) await signInAnonymously(auth);

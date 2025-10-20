@@ -1,20 +1,29 @@
-import { ref, runTransaction, serverTimestamp, Database } from "firebase/database";
-import { generateFiveDigitCode } from "../lib/ids";
+import { ref, runTransaction, serverTimestamp, Database, update } from "firebase/database";
+import { auth } from "@/firebase";
+import { generateFiveDigitCode } from "@/lib/ids";
 
 export const roomRefName = "rooms"
 
-export async function createRoomWithUniqueCode(db: Database) {
-  for (;;) {
-    const code = generateFiveDigitCode();
-    const roomRef = ref(db, `${roomRefName}/${code}`);
+export async function createRoomWithUniqueCode(db: Database, factQuantity: number) {
+  const hostUid = auth.currentUser?.uid;
+  if (!hostUid) throw new Error("No user; call ensureAnon() before creating a room.");
 
-    const { committed } = await runTransaction(roomRef, (current) => {
-      if (current === null) {
-        return { createdAt: serverTimestamp() }; // Claim room code
-      }
-      return; // Abort (code taken)
+  while (true) {
+    const code = generateFiveDigitCode();
+
+    const hostRef = ref(db, `${roomRefName}/${code}/hostUid`);
+    const { committed } = await runTransaction(hostRef, (curr) => {
+      if (curr === null) return hostUid;
+      return;
     });
 
-    if (committed) return code; // success
+    if (!committed) continue;
+
+    await update(ref(db, `${roomRefName}/${code}`), {
+      factQuantity,
+      createdAt: serverTimestamp(),
+    });
+
+    return code;
   }
 }

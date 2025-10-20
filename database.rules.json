@@ -1,7 +1,79 @@
 {
-  /* Visit https://firebase.google.com/docs/database/security to learn more about security rules. */
   "rules": {
-    ".read": true,
-    ".write": true
+    "rooms": {
+      "$code": {
+        "hostUid": {
+          ".read": "auth != null",
+          ".write": "auth != null && (!data.exists() || newData.val() === auth.uid)",
+          ".validate": "newData.isString() && newData.val() === auth.uid"
+        },
+
+        "state": {
+          ".read": "auth != null",
+          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
+          ".validate": "newData.isString() && (newData.val() === 'lobby' || newData.val() === 'playing' || newData.val() === 'done')"
+        },
+
+        "factQuantity": {
+          ".read": "auth != null",
+          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
+          ".validate": "newData.isNumber() && newData.val() >= 2 && newData.val() <= 6"
+        },
+
+        "createdAt": {
+          ".read": "auth != null",
+          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
+          ".validate": "newData.val() == now || newData.isNumber()"
+        },
+
+        "players": {
+          ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
+          "$uid": {
+            ".write": "auth.uid === $uid",
+            // Remove strict parent .validate; validate children instead:
+            "name":  { ".validate": "newData.isString() && newData.val().length > 0" },
+            "ready": { ".validate": "newData.isBoolean()" }
+          }
+        },
+
+        "factsByPlayer": {
+          "$uid": {
+            ".read": "auth.uid === $uid || auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
+            "$difficulty": {
+              "$factId": {
+                ".write": "auth.uid === $uid && root.child('rooms/'+$code+'/players/'+auth.uid).exists() && root.child('rooms/'+$code+'/state').val() === 'lobby'",
+                ".validate": "newData.hasChildren(['text']) && newData.child('text').isString() && newData.child('text').val().length > 0"
+              }
+            }
+          }
+        },
+
+        "pool": {
+          ".read": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
+          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()"
+        },
+
+        "currentQuestion": {
+          ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
+          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()"
+        },
+
+        "reveal": {
+          ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
+          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()"
+        },
+
+        "scoreboard": {
+          ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
+          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()"
+        },
+
+        "turn": {
+          ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
+          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
+          ".validate": "newData.hasChildren(['team']) && newData.child('team').isNumber() && (newData.child('team').val() === 1 || newData.child('team').val() === 2)"
+        }
+      }
+    }
   }
 }
