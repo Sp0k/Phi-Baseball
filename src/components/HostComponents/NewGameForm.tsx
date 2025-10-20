@@ -4,6 +4,7 @@ import { db } from "@/firebase";
 import { type Room } from "@/models/room";
 import { GAMESTAGES } from "@/models/game-stage";
 import { serverTimestamp } from "firebase/database";
+import { rememberHostRoom } from "@/services/host-room-pointer-service";
 
 interface NewGameFormProps {
   roomCallback: (room: Room) => void;
@@ -14,6 +15,8 @@ function NewGameForm({ roomCallback }: NewGameFormProps) {
 
   const createNewGame = async () => {
     const newGameId = await createRoomWithUniqueCode(db, factQuantity);
+    rememberHostRoom(newGameId);
+
     const room: Room = {
       id: newGameId,
       factQuantity: factQuantity,

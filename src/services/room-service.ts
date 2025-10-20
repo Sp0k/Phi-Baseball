@@ -1,8 +1,9 @@
 import { ref, runTransaction, serverTimestamp, Database, update } from "firebase/database";
 import { auth } from "@/firebase";
 import { generateFiveDigitCode } from "@/lib/ids";
+import { GAMESTAGES } from "@/models/game-stage";
 
-export const roomRefName = "rooms"
+export const roomRefKey = "rooms"
 
 export async function createRoomWithUniqueCode(db: Database, factQuantity: number) {
   const hostUid = auth.currentUser?.uid;
@@ -11,7 +12,7 @@ export async function createRoomWithUniqueCode(db: Database, factQuantity: numbe
   while (true) {
     const code = generateFiveDigitCode();
 
-    const hostRef = ref(db, `${roomRefName}/${code}/hostUid`);
+    const hostRef = ref(db, `${roomRefKey}/${code}/hostUid`);
     const { committed } = await runTransaction(hostRef, (curr) => {
       if (curr === null) return hostUid;
       return;
@@ -19,9 +20,10 @@ export async function createRoomWithUniqueCode(db: Database, factQuantity: numbe
 
     if (!committed) continue;
 
-    await update(ref(db, `${roomRefName}/${code}`), {
+    await update(ref(db, `${roomRefKey}/${code}`), {
       factQuantity,
       createdAt: serverTimestamp(),
+      state: GAMESTAGES.LOBBY,
     });
 
     return code;

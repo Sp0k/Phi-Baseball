@@ -10,3 +10,10 @@ export type Room = {
   createdAt: RTDBTime,
   gameStage: GameStage,
 };
+
+export const ROOMFIELDS = {
+  HOSTUID: "hostUid",
+  FACTQUANTITY: "factQuantity",
+  CREATEDAT: "createdAt",
+  STATE: "state",
+} as const;
