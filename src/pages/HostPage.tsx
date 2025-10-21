@@ -37,7 +37,7 @@ function HostPage() {
         (gameStage === GAMESTAGES.PREGAME) && <NewGameForm roomCallback={(room) => setRoom(room)} />
       }
       {
-        (gameStage === GAMESTAGES.LOBBY) && <Lobby room={room} gameStateCallback={(gameStage) => setGameStage(gameStage)} />
+        (gameStage === GAMESTAGES.LOBBY) && room !== null && <Lobby room={room} gameStateCallback={(gameStage) => setGameStage(gameStage)} />
       }
       {
         (gameStage === GAMESTAGES.ACTIVE) && <button onClick={tmpEndGame}>End Game</button>

@@ -37,11 +37,12 @@
         },
 
         "factsByPlayer": {
+          ".read": "auth.uid === root.child('rooms/' + $code + '/hostUid').val()",
           "$uid": {
-            ".read": "auth.uid === $uid || auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
+            ".read": "auth.uid === $uid || auth.uid === root.child('rooms/' + $code + '/hostUid').val()",
             "$difficulty": {
               "$factId": {
-                ".write": "auth.uid === $uid && root.child('rooms/'+$code+'/players/'+auth.uid).exists() && root.child('rooms/'+$code+'/state').val() === 'lobby'",
+                ".write": "auth.uid === $uid && root.child('rooms/' + $code + '/players/' + auth.uid).exists() && root.child('rooms/' + $code + '/state').val() === 'lobby'",
                 ".validate": "newData.hasChildren(['text']) && newData.child('text').isString() && newData.child('text').val().length > 0"
               }
             }

@@ -2,8 +2,8 @@ import { ref, runTransaction, serverTimestamp, Database, update } from "firebase
 import { auth } from "@/firebase";
 import { generateFiveDigitCode } from "@/lib/ids";
 import { GAMESTAGES } from "@/models/game-stage";
+import { roomRefKey } from "@/models/keys";
 
-export const roomRefKey = "rooms"
 
 export async function createRoomWithUniqueCode(db: Database, factQuantity: number) {
   const hostUid = auth.currentUser?.uid;

@@ -11,7 +11,7 @@ interface NewGameFormProps {
 }
 
 function NewGameForm({ roomCallback }: NewGameFormProps) {
-  const [factQuantity, setFactQuantity] = useState(2);
+  const [factQuantity, setFactQuantity] = useState(3);
 
   const createNewGame = async () => {
     const newGameId = await createRoomWithUniqueCode(db, factQuantity);

@@ -1,11 +1,12 @@
 import { GAMESTAGES, type GameStage } from "@/models/game-stage";
 import { type Room } from "@/models/room";
 import { ref, update } from "firebase/database";
-import { roomRefKey } from "@/services/room-service";
+import { roomRefKey } from "@/models/keys";
 import { db } from "@/firebase";
+import { useSubmittersCount } from "@/hooks/useSubmittersCount";
 
 interface LobbyProps {
-  room: Room | null;
+  room: Room;
   gameStateCallback: (gameStage: GameStage) => void;
 }
 
@@ -17,9 +18,12 @@ function Lobby({ room, gameStateCallback }: LobbyProps) {
     });
   }
 
+  const playersReady = useSubmittersCount(room?.id);
+
   return (
     <div>
       <h2>{room?.id}</h2>
+      <p>There is {playersReady} players ready</p>
       <button onClick={startGame}>Start Game</button>
     </div>
   );

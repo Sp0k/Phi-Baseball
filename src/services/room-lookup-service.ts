@@ -2,7 +2,7 @@ import { auth, db } from "@/firebase";
 import { child, ref, get } from "firebase/database";
 import { type Room, ROOMFIELDS } from "@/models/room";
 import { getRememberedCode, forgetHostRoom } from "./host-room-pointer-service";
-import { roomRefKey } from "./room-service";
+import { roomRefKey } from "@/models/keys";
 import { GAMESTAGES } from "@/models/game-stage";
 
 export async function restoreRoomFromStorage(): Promise<Room | null> {
