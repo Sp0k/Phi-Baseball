@@ -286,4 +286,4 @@ Distributed under the _MIT_ license. See [LICENSE](LICENSE) for more information
 
 ## Contact
 
-Gab 'Sp0k' Savard - [contact@gabsavard.com]("mailto:contact@gabsavard.com")
+Gab 'Sp0k' Savard - [contact@gabsavard.com](mailto:contact@gabsavard.com)
