@@ -5,6 +5,7 @@ import NewGameForm from "@/components/HostComponents/NewGameForm";
 import Lobby from "@/components/HostComponents/Lobby";
 import { endRoomAndForget, getRememberedCode } from "@/services/host-room-pointer-service";
 import { restoreRoomFromStorage } from "@/services/room-lookup-service";
+import Game from "@/components/HostComponents/Game";
 
 function HostPage() {
   const [room, setRoom] = useState<Room | null>(null);
@@ -40,7 +41,12 @@ function HostPage() {
         (gameStage === GAMESTAGES.LOBBY) && room !== null && <Lobby room={room} gameStateCallback={(gameStage) => setGameStage(gameStage)} />
       }
       {
-        (gameStage === GAMESTAGES.ACTIVE) && <button onClick={tmpEndGame}>End Game</button>
+        (gameStage === GAMESTAGES.ACTIVE) && room !== null && (
+          <div>
+            <Game room={room} gameStateCallback={(gameStage) => setGameStage(gameStage)} />
+            <button onClick={tmpEndGame}>End Game</button>
+          </div>
+        )
       }
     </div>
   );

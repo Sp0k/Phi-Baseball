@@ -48,31 +48,17 @@
             }
           }
         },
-
-        "pool": {
+        
+        "usedFacts": {
           ".read": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
-          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()"
-        },
-
-        "currentQuestion": {
-          ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
-          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()"
-        },
-
-        "reveal": {
-          ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
-          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()"
-        },
-
-        "scoreboard": {
-          ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
-          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()"
-        },
-
-        "turn": {
-          ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
-          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
-          ".validate": "newData.hasChildren(['team']) && newData.child('team').isNumber() && (newData.child('team').val() === 1 || newData.child('team').val() === 2)"
+          "$uid": {
+            "$level": {
+              "$factId": {
+                ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
+                ".validate": "newData.val() === true"
+              }
+            }
+          }
         }
       }
     }
