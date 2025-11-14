@@ -1,68 +1,46 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+@theme {
+  --color-gray-900: oklch(0.2511 0.0064 258.36);
+  --color-gray-800: oklch(0.3131 0.0093 268.37);
+  --color-gray-700: oklch(0.344 0.0112 264.42);
+  --color-gray-600: oklch(0.4443 0.0146 259.82);
+  --color-gray-400: oklch(0.8783 0.0076 260.73);
+  --color-gray-300: oklch(0.9212 0.0046 258.33);
+  --color-gray-200: oklch(0.9451 0.0034 247.86);
+  --color-gray-100: oklch(0.964 0.0029 264.54);
+  --color-phidelt-navy: oklch(0.2054 0.0618 270.53);
+  --color-phidelt-blue: oklch(0.6695 0.089 241.45);
+  --color-phidelt-light-blue: oklch(0.9325 0.0204 224.31);
+  --color-phidelt-blue-gray: oklch(0.4732 0.0386 269.89);
+  --color-phidelt-gold: oklch(0.8249 0.1599 86.37);
+  --color-phidelt-gray: oklch(0.7555 0.0071 286.23);
+  --color-phidelt-red: oklch(0.519 0.1618 25.57);
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+@utility sidebar-header {
+  @apply relative flex items-center justify-center
+         h-14 w-14 mt-2 mb-4 mx-auto shadow-lg
+         bg-phidelt-blue text-phidelt-light-blue
+         hover:bg-phidelt-light-blue hover:text-phidelt-blue
+         rounded-3xl hover:rounded-xl
+         transition-all duration-300 ease-linear
+         cursor-pointer;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+@utility sidebar-icon {
+  @apply relative flex items-center justify-center
+         h-12 w-12 mt-2 mb-2 mx-auto shadow-lg
+         bg-phidelt-blue text-phidelt-light-blue
+         hover:bg-phidelt-light-blue hover:text-phidelt-blue
+         rounded-3xl hover:rounded-xl
+         transition-all duration-300 ease-linear
+         cursor-pointer;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+@utility sidebar-tooltip {
+  @apply absolute w-auto p-2 m-2 min-w-max left-14
+         rounded-md shadow-md text-white bg-phidelt-navy
+         text-xs font-bold transition-all 
+         duration-100 scale-0 origin-left;
 }

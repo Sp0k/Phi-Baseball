@@ -1,29 +1,42 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import './App.css'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import HostPage from './pages/HostPage'
 import JoinPage from './pages/JoinPage'
 import NavBar from './components/NavBar'
+import HomePage from './pages/HomePage'
+import Header from './components/Header'
+import { useEffect, useState } from 'react'
+
+function Rules() {
+  return <h1>Rules</h1>
+}
 
 function App() {
-  function Home() {
-    return <h1>Home Page</h1>
-  }
+  const [sideBarActive, setSideBarActive] = useState(false);
+  const toggleSideBar = () => setSideBarActive(prev => !prev);
+  const location = useLocation();
 
-  function Rules() {
-    return <h1>Rules</h1>
-  }
+  useEffect(() => {
+    setSideBarActive(false);
+  }, [location.pathname]);
 
   return (
-    <BrowserRouter>
-      <NavBar />
+    <>
+      <Header menuCallback={toggleSideBar} />
+      <NavBar isActive={sideBarActive} />
+
+      {sideBarActive && (
+        <div className="fixed inset-0 bg-black/40 sm:hidden z-20"
+          onClick={() => setSideBarActive(false)}
+        />
+      )}
 
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/host" element={<HostPage />} />
         <Route path="/join" element={<JoinPage />} />
         <Route path="/rules" element={<Rules />} />
       </Routes>
-    </BrowserRouter>
+    </>
   )
 }
 
