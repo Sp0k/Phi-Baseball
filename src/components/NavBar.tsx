@@ -39,7 +39,7 @@ const SideBarHeader = ({ icon, text = 'tooltip'}: SideBarIconProps) => {
 
 const NavBar = ({ isActive }: NavBarProps) => {
   return (
-    <div className={`fixed top-8 sm:top-10 pt-5 transition-all duration-300 left-0 h-screen
+    <div className={`fixed top-7 sm:top-10 pt-5 transition-all duration-300 left-0 h-screen
                     ${isActive ? "translate-x-0" : "-translate-x-full"} sm:translate-x-0
                     w-18 m-0 flex flex-col bg-phidelt-navy text-white shadow-lg z-40`}
     >

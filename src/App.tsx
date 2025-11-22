@@ -5,6 +5,7 @@ import NavBar from './components/NavBar'
 import HomePage from './pages/HomePage'
 import Header from './components/Header'
 import { useEffect, useState } from 'react'
+import PlayPage from './pages/PlayPage'
 
 function Rules() {
   return <h1>Rules</h1>
@@ -32,6 +33,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/play" element={<PlayPage />} />
         <Route path="/host" element={<HostPage />} />
         <Route path="/join" element={<JoinPage />} />
         <Route path="/rules" element={<Rules />} />

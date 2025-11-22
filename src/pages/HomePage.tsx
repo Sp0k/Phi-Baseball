@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 
 function HomePage() {
   return (
-    <main className="relative top-12 sm:top-14 w-full h-full sm:left-18">
+    <main className="fixed top-12 sm:top-14 w-full h-full sm:left-10 lg:left-18">
       {/* Background */}
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[url(/public/baseball-field-bg.jpg)] bg-cover bg-center filter grayscale" />
 
-      <div className="mx-auto max-w-2xl my-36 py-10 sm:py-20 sm:my-48 bg-black/45 backdrop-blur-md">
+      <div className="mx-auto max-w-2xl my-36 py-10 sm:py-20 sm:my-48 bg-black/45 sm:rounded-xl backdrop-blur-md">
         <div className="text-center">
           <h1 className="text-5xl font-semibold tracking-tight text-balance text-phidelt-light-blue sm:text-7xl">Welcome to Phi Baseball</h1>
           <p className="mt-8 text-lg font-medium text-pretty text-phidelt-light-blue/70 sm:text-xl/8">Get to know your brothers through a fact-guessing game!</p>
