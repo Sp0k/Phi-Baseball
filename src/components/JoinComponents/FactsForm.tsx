@@ -57,35 +57,59 @@ function FactsForm({
   }
 
   return (
-    <div>
-      <h2>{roomId}</h2>
-      <form onSubmit={submit}>
-        <label>
-          <span>Name</span><br/>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-            />
-        </label><br/>
-
-        {facts.map((value, i) => (
-          <label key={i}>
-            <span>Fact {i + 1}</span><br/>
+    <div className="max-w-xl flex justify-center mx-auto">
+      <div>
+        <h3 className="mx-auto text-3xl text-phidelt-navy/70 text-center -mt-3 mb-4 sm:mb-6 font-semibold">{roomId}</h3>
+        <form className="w-full" onSubmit={submit}>
+          <label
+            htmlFor="nameInput"
+            className="text-lg font-semibold mb-1 flex flex-col"
+          >
+            Name
             <input
               type="text"
-              value={value.fact}
-              onChange={e => handleChangeFact(i, e.target.value)}
+              name="nameInput"
+              id="nameInput"
+              value={name}
+              onChange={e => setName(e.target.value)}
               required
-              /><br/>
+              className="border-2 border-phidelt-navy rounded bg-phidelt-navy/20 font-normal text-base px-2 py-1 focus:outline-none"
+            />
           </label>
-        ))}
 
-        <button type="submit" disabled={!allFilled}>
-          Submit facts
-        </button>
-      </form>
+          {facts.map((value, i) => (
+            <label 
+              key={i}
+              htmlFor={"fact_" + (i + 1)}
+              className="text-lg font-semibold mv-1 flex flex-col"
+            >
+              Fact {i + 1}
+              <input
+                type="text"
+                name={"fact_" + (i + 1)}
+                id={"fact_" + (i + 1)}
+                value={value.fact}
+                onChange={e => handleChangeFact(i, e.target.value)}
+                required
+                className="border-2 border-phidelt-navy rounded font-normal text-base bg-phidelt-navy/20 px-2 py-1 focus:outline-none"
+              /><br/>
+            </label>
+          ))}
+
+          <div className="w-full flex justify-center">
+            <button 
+              type="submit"
+              disabled={!allFilled}
+              className={`rounded-md bg-phidelt-blue w-fit px-5 mt-4 mx-auto cursor-pointer py-2.5 text-sm
+font-semibold text-white shadow-xs hover:bg-phidelt-blue/70
+transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:bg-phidelt-blue-gray
+disabled:bg-phidelt-blue-gray disabled:text-slate-400`}
+            >
+              Submit facts
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

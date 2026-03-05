@@ -9,28 +9,30 @@ function JoinPage() {
   const [submitted, setSubmitted] = useState<boolean>(false);
 
   return (
-    <div>
-      <h1>Join</h1>
-      {
-        room === null && <JoinGameForm roomCallback={(room) => setRoom(room)} />
-      }
-      {
-        room !== null && !submitted &&
-          <FactsForm
-            roomId={room.id}
-            factQuantity={room.factQuantity}
-            onSubmit={async ({ name, facts }) => {
-              await submitFacts(room, name, facts);
-              setSubmitted(true);
-            }}
-            initialName=""
-            initialFacts={[]}
-        />
-      }
-      {
-        room !== null && submitted && <h2>Your facts were submitted!</h2>
-      }
-    </div>
+    <main className="sm:fixed top-12 sm:top-14 w-full sm:h-full sm:left-10 lg:left-18 bg-slate-300">
+      <div className="mx-auto max-w-2xl my-5 py-10 sm:my-20 flex flex-col justify-center">
+        <h2 className="text-7xl text-black mx-auto text-center my-10 sm:mb-20 font-bold">Join</h2>
+        {
+          room === null && <JoinGameForm roomCallback={(room) => setRoom(room)} />
+        }
+        {
+          room !== null && !submitted &&
+            <FactsForm
+              roomId={room.id}
+              factQuantity={room.factQuantity}
+              onSubmit={async ({ name, facts }) => {
+                await submitFacts(room, name, facts);
+                setSubmitted(true);
+              }}
+              initialName=""
+              initialFacts={[]}
+            />
+        }
+        {
+          room !== null && submitted && <h3 className="mx-auto font-semibold text-lg">Your facts were submitted!</h3>
+        }
+      </div>
+    </main>
   );
 }
 
