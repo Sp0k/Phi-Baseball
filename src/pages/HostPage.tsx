@@ -3,7 +3,7 @@ import { GAMESTAGES, type GameStage } from "@/models/game-stage";
 import { type Room } from "@/models/room";
 import NewGameForm from "@/components/HostComponents/NewGameForm";
 import Lobby from "@/components/HostComponents/Lobby";
-import { endRoomAndForget, getRememberedCode } from "@/services/host-room-pointer-service";
+import { getRememberedCode } from "@/services/host-room-pointer-service";
 import { restoreRoomFromStorage } from "@/services/room-lookup-service";
 import Game from "@/components/HostComponents/Game";
 
@@ -26,29 +26,24 @@ function HostPage() {
     setGameStage((room === null) ? GAMESTAGES.PREGAME : room.gameStage);
   }, [room]);
 
-  const tmpEndGame = async () => {
-    room !== null && await endRoomAndForget(room.id);
-    setRoom(null);
-  }
-
   return (
-    <div>
-      <h1>Host</h1>
-      {
-        (gameStage === GAMESTAGES.PREGAME) && <NewGameForm roomCallback={(room) => setRoom(room)} />
-      }
-      {
-        (gameStage === GAMESTAGES.LOBBY) && room !== null && <Lobby room={room} gameStateCallback={(gameStage) => setGameStage(gameStage)} />
-      }
-      {
-        (gameStage === GAMESTAGES.ACTIVE) && room !== null && (
-          <div>
-            <Game room={room} gameStateCallback={(gameStage) => setGameStage(gameStage)} />
-            <button onClick={tmpEndGame}>End Game</button>
-          </div>
-        )
-      }
-    </div>
+    <main className="sm:fixed top-12 sm:top-14 w-full sm:h-full sm:left-10 lg:left-18 bg-slate-300">
+      <div className="mx-auto max-w-2xl my-5 py-10 sm:my-20 flex flex-col justify-center">
+        <h2 className="text-7xl text-black mx-auto text-center my-10 sm:mb-20 font-bold">Host</h2>
+        {
+          (gameStage === GAMESTAGES.PREGAME) && <NewGameForm roomCallback={(room) => setRoom(room)} />
+        }
+        {
+          (gameStage === GAMESTAGES.LOBBY) && room !== null && <Lobby room={room} gameStateCallback={(gameStage) => setGameStage(gameStage)} />
+        }
+        {
+          (gameStage === GAMESTAGES.ACTIVE) && room !== null && <Game room={room} gameStateCallback={(gameStage) => setGameStage(gameStage)}  />
+        }
+        {
+          (gameStage === GAMESTAGES.DONE) && room !== null && <p className="flex justify-center font-semibold text-2xl">Thank you for playing!!!</p>
+        }
+      </div>
+    </main>
   );
 }
 

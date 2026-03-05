@@ -27,11 +27,32 @@ function NewGameForm({ roomCallback }: NewGameFormProps) {
   }
 
   return (
-    <div>
-      <h2>New Game</h2>
-      <label htmlFor="numOfFacts">Number of facts per player</label><br />
-      <input type="number" id="numOfFacts" defaultValue="3" min="2" max="6" onChange={(i) => setFactQuantity(parseInt(i.target.value))} /><br/>
-      <button onClick={createNewGame}>Create Game</button><br/>
+    <div className="flex flex-col h-full max-w-72 mx-auto">
+      <h3 className="mx-auto text-3xl text-center -mt-3 mb-4 sm:mb-6 font-semibold">New Game</h3>
+      <label 
+        htmlFor="numOfFacts"
+        className="flex flex-col text-lg font-semibold mb-1"
+      >
+        Number of facts per player
+        <input
+          type="number"
+          name="numOfFacts"
+          id="numOfFacts"
+          defaultValue="3"
+          min="2"
+          max="6"
+          onChange={(i) => setFactQuantity(parseInt(i.target.value))}
+          className="border-2 w-fit mx-auto font-semibold text-base border-phidelt-navy bg-phidelt-navy/20 px-2 py-1 focus:outline-none rounded"
+        />
+      </label>
+      <button 
+        onClick={createNewGame}
+        className="rounded-md bg-phidelt-blue w-fit px-5 mt-4 mx-auto cursor-pointer py-2.5 text-sm
+        font-semibold text-white shadow-xs hover:bg-phidelt-blue/70
+        transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:bg-phidelt-blue-gray"
+      >
+        Create Game
+      </button>
     </div>
   )
 }

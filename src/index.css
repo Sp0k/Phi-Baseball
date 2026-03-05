@@ -18,6 +18,16 @@
   --color-phidelt-red: oklch(0.519 0.1618 25.57);
 }
 
+@layer utilities {
+  .spinner-lg::-webkit-inner-spin-button,
+  .spinner-lg::-webkit-outer-spin-button {
+    opacity: 1;
+    transform: scale(1.35);
+    transform-origin: center;
+    margin-left: 4px; /* optional: gives it breathing room */
+  }
+}
+
 @utility sidebar-header {
   @apply relative flex items-center justify-center
          h-14 w-14 mt-2 mb-4 mx-auto shadow-lg
