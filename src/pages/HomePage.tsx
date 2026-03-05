@@ -6,6 +6,7 @@ function HomePage() {
       {/* Background */}
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[url(/public/baseball-field-bg.jpg)] bg-cover bg-center filter grayscale" />
 
+      {/* Main Content */}
       <div className="mx-auto max-w-2xl my-36 py-10 sm:py-20 sm:my-48 bg-black/45 sm:rounded-xl backdrop-blur-md">
         <div className="text-center">
           <h1 className="text-5xl font-semibold tracking-tight text-balance text-phidelt-light-blue sm:text-7xl">Welcome to Phi Baseball</h1>
