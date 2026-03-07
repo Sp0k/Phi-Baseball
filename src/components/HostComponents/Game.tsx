@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ref, update } from "firebase/database";
+import { Link } from "react-router-dom";
 import { db } from "@/firebase";
 import { roomRefKey } from "@/models/keys";
 import { type Room } from "@/models/room";
@@ -54,6 +55,29 @@ function Game({ room, gameStateCallback }: GameProps) {
     [room.factQuantity]
   );
 
+  const winnerSummary = useMemo(() => {
+    const brothers = scoreboard[TEAMS.BROTHERS];
+    const phikeias = scoreboard[TEAMS.PHIKEIAS];
+
+    if (brothers.runs > phikeias.runs) {
+      return { winner: TEAMS.BROTHERS, isTie: false };
+    }
+
+    if (phikeias.runs > brothers.runs) {
+      return { winner: TEAMS.PHIKEIAS, isTie: false };
+    }
+
+    if (brothers.bases > phikeias.bases) {
+      return { winner: TEAMS.BROTHERS, isTie: false };
+    }
+
+    if (phikeias.bases > brothers.bases) {
+      return { winner: TEAMS.PHIKEIAS, isTie: false };
+    }
+
+    return { winner: null, isTie: true };
+  }, [scoreboard]);
+
   const otherTeam = (team: Team): Team =>
     team === TEAMS.BROTHERS ? TEAMS.PHIKEIAS : TEAMS.BROTHERS;
 
@@ -105,8 +129,6 @@ function Game({ room, gameStateCallback }: GameProps) {
 
   const endGame = () => {
     setPhase("done");
-    gameStateCallback(GAMESTAGES.DONE);
-    void endRoomAndForget(room.id);
   };
 
   const registerClick = () => {
@@ -201,9 +223,8 @@ function Game({ room, gameStateCallback }: GameProps) {
     const nextTeam = otherTeam(activeTeam);
     const nextStrikes = didWin ? strikes : strikes + 1;
 
-    let nextBuckets = buckets;
-    let activeTeamFactsLeft = factsLeftForTeam(activeTeam, nextBuckets);
-    let nextTeamFactsLeft = factsLeftForTeam(nextTeam, nextBuckets);
+    const activeTeamFactsLeft = factsLeftForTeam(activeTeam, buckets);
+    const nextTeamFactsLeft = factsLeftForTeam(nextTeam, buckets);
 
     if (didWin) {
       setScoreboard((prev) =>
@@ -256,104 +277,178 @@ function Game({ room, gameStateCallback }: GameProps) {
   };
 
   return (
-    <div>
-      <div className="w-full flex justify-center mb-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl px-6 py-4 shadow-sm min-w-52 text-center">
-            <h3 className="font-bold text-lg">{TEAMS.BROTHERS}</h3>
-            <p className="text-xl mt-2">Runs: {scoreboard[TEAMS.BROTHERS].runs}</p>
-            <p className="text-base text-slate-600">
-              Bases: {scoreboard[TEAMS.BROTHERS].bases} / {room.factQuantity}
-            </p>
-          </div>
+    <div className="w-full h-[calc(100dvh-10rem)] px-4 py-4">
+      <div className="mx-auto h-full w-full grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Left side */}
+        <aside className="lg:col-span-4 h-full min-h-0 flex flex-col gap-4">
+          <div className="bg-white rounded-xl px-6 py-5 shadow-sm">
+            <h2 className="text-xl font-bold text-center mb-4">Scoreboard</h2>
 
-          <div className="bg-white rounded-xl px-6 py-4 shadow-sm min-w-52 text-center">
-            <h3 className="font-bold text-lg">{TEAMS.PHIKEIAS}</h3>
-            <p className="text-xl mt-2">Runs: {scoreboard[TEAMS.PHIKEIAS].runs}</p>
-            <p className="text-base text-slate-600">
-              Bases: {scoreboard[TEAMS.PHIKEIAS].bases} / {room.factQuantity}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full flex justify-center mb-6">
-        <div className="bg-white rounded-xl px-6 py-4 shadow-sm text-center min-w-72">
-          <p className="text-sm text-slate-500">Current team</p>
-          <h3 className="text-2xl font-bold">{turnTeam}</h3>
-
-          <p className="text-sm text-slate-500 mt-3">Current player</p>
-          <p className="text-xl font-semibold">
-            {currentPlayer ? currentPlayer.name : "No player"}
-          </p>
-
-          <p className="text-sm text-slate-500 mt-3">Strikes</p>
-          <p className="text-lg font-semibold">{strikes} / 3</p>
-
-          <p className="text-sm text-slate-500 mt-3">Facts left for this team</p>
-          <p className="text-lg font-semibold">{factsLeftForTeam(turnTeam)}</p>
-
-          {phase === "finalChance" && (
-            <p className="mt-3 text-red-600 font-bold">Final chance</p>
-          )}
-        </div>
-      </div>
-
-      {current === null && phase !== "done" && (
-        <div className="flex justify-center gap-8 flex-wrap">
-          {levels.map((level) => {
-            const leftOver = eligibleBuckets[level]?.length ?? 0;
-
-            return (
-              <div key={level} className="flex flex-col">
-                <button
-                  className="cursor-pointer disabled:cursor-not-allowed"
-                  onClick={() => pickFromLevel(level)}
-                  disabled={leftOver === 0}
-                >
-                  <div className="bg-white rounded-lg px-10 py-2 shadow-sm/20 hover:shadow-sm/50 transition-all duration-100 disabled:opacity-50">
-                    Level {level} <br />({leftOver} left)
-                  </div>
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {current && (
-        <div className="w-full flex flex-col items-center">
-          <button onClick={registerClick} className="cursor-pointer">
-            <div className="bg-white rounded-2xl p-4 shadow-sm/20 min-h-80 w-100 mx-auto flex flex-col">
-              <p className="text-black text-3xl flex-1 flex items-center justify-center text-center px-2">
-                {current.text}
-              </p>
-
-              {displayName && (
-                <p className="font-semibold text-2xl text-phidelt-red text-center mt-auto">
-                  {current.ownerName ?? current.ownerUid}
+            <div className="grid grid-cols-1 gap-4">
+              <div className="rounded-lg border border-slate-200 px-4 py-4 text-center">
+                <h3 className="font-bold text-lg">{TEAMS.BROTHERS}</h3>
+                <p className="text-xl mt-2">Runs: {scoreboard[TEAMS.BROTHERS].runs}</p>
+                <p className="text-base text-slate-600">
+                  Bases: {scoreboard[TEAMS.BROTHERS].bases} / {room.factQuantity}
                 </p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 px-4 py-4 text-center">
+                <h3 className="font-bold text-lg">{TEAMS.PHIKEIAS}</h3>
+                <p className="text-xl mt-2">Runs: {scoreboard[TEAMS.PHIKEIAS].runs}</p>
+                <p className="text-base text-slate-600">
+                  Bases: {scoreboard[TEAMS.PHIKEIAS].bases} / {room.factQuantity}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl px-6 py-5 shadow-sm flex-1 min-h-0 overflow-y-auto">
+            <h2 className="text-xl font-bold text-center mb-4">Game Info</h2>
+
+            <div className="space-y-4 text-center">
+              <div>
+                <p className="text-sm text-slate-500">Current team</p>
+                <h3 className="text-2xl font-bold">{turnTeam}</h3>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">Current player</p>
+                <p className="text-xl font-semibold">
+                  {currentPlayer ? currentPlayer.name : "No player"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">Strikes</p>
+                <p className="text-lg font-semibold">{strikes} / 3</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">Facts left for this team</p>
+                <p className="text-lg font-semibold">{factsLeftForTeam(turnTeam)}</p>
+              </div>
+
+              {phase === "finalChance" && (
+                <p className="text-red-600 font-bold">Final chance</p>
               )}
             </div>
-          </button>
-
-          <div className="flex gap-4 mt-6">
-            <button
-              onClick={awardWinToCurrentTeam}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg"
-            >
-              Win
-            </button>
-
-            <button
-              onClick={registerLossForCurrentTeam}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg"
-            >
-              Lose
-            </button>
           </div>
-        </div>
-      )}
+        </aside>
+
+        {/* Right side */}
+        <section className="lg:col-span-8 h-full min-h-0 bg-white rounded-xl shadow-sm p-6 overflow-y-auto">
+          {current === null && phase !== "done" && (
+            <>
+              <h2 className="text-2xl mx-auto font-bold text-center mb-8">Select a Fact</h2>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                {levels.map((level) => {
+                  const leftOver = eligibleBuckets[level]?.length ?? 0;
+
+                  return (
+                    <button
+                      key={level}
+                      className="cursor-pointer disabled:cursor-not-allowed"
+                      onClick={() => pickFromLevel(level)}
+                      disabled={leftOver === 0}
+                    >
+                      <div className="bg-slate-100 rounded-lg px-6 py-6 shadow-sm hover:shadow-md hover:bg-slate-50 transition-all duration-100 disabled:opacity-50 text-center w-full">
+                        <span className="text-lg font-semibold">Level {level}</span>
+                        <br />
+                        <span className="text-sm text-slate-600">({leftOver} left)</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {current && (
+            <div className="w-full h-full flex flex-col items-center justify-center">
+              <button
+                onClick={registerClick}
+                className="cursor-pointer w-full flex justify-center"
+              >
+                <div className="bg-slate-50 rounded-2xl p-6 shadow-sm min-h-80 w-full max-w-3xl mx-auto flex flex-col">
+                  <p className="text-black text-3xl flex-1 flex items-center justify-center text-center px-2">
+                    {current.text}
+                  </p>
+
+                  {displayName && (
+                    <p className="font-semibold text-2xl text-phidelt-red text-center mt-auto">
+                      {current.ownerName ?? current.ownerUid}
+                    </p>
+                  )}
+                </div>
+              </button>
+
+              {displayName && 
+                <div className="flex gap-4 mt-6">
+                  <button
+                    onClick={awardWinToCurrentTeam}
+                    className="bg-green-600 cursor-pointer text-white px-5 py-2.5 rounded-lg"
+                  >
+                    Win
+                  </button>
+
+                  <button
+                    onClick={registerLossForCurrentTeam}
+                    className="bg-red-600 cursor-pointer text-white px-5 py-2.5 rounded-lg"
+                  >
+                    Lose
+                  </button>
+                </div>
+              }
+            </div>
+          )}
+
+          {phase === "done" && (
+            <div className="h-full flex flex-col items-center justify-center text-center">
+              <h2 className="text-4xl font-bold mb-4">Game Over</h2>
+
+              {winnerSummary.isTie ? (
+                <p className="text-2xl font-semibold mb-6">It's a tie!</p>
+              ) : (
+                  <p className="text-2xl font-semibold mb-6">
+                    Winning team: {winnerSummary.winner}
+                  </p>
+                )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
+                <div className="bg-slate-100 rounded-xl px-6 py-5 shadow-sm">
+                  <h3 className="text-xl font-bold mb-2">{TEAMS.BROTHERS}</h3>
+                  <p className="text-lg">Runs: {scoreboard[TEAMS.BROTHERS].runs}</p>
+                  <p className="text-base text-slate-600">
+                    Bases: {scoreboard[TEAMS.BROTHERS].bases} / {room.factQuantity}
+                  </p>
+                </div>
+
+                <div className="bg-slate-100 rounded-xl px-6 py-5 shadow-sm">
+                  <h3 className="text-xl font-bold mb-2">{TEAMS.PHIKEIAS}</h3>
+                  <p className="text-lg">Runs: {scoreboard[TEAMS.PHIKEIAS].runs}</p>
+                  <p className="text-base text-slate-600">
+                    Bases: {scoreboard[TEAMS.PHIKEIAS].bases} / {room.factQuantity}
+                  </p>
+                </div>
+              </div>
+
+              <Link to="/play">
+                <button
+                  onClick={async () => {
+                    await endRoomAndForget(room.id);
+                    gameStateCallback(GAMESTAGES.DONE);
+                  }}
+                  className="mt-6 cursor-pointer bg-phidelt-navy text-white px-5 py-2.5 rounded-lg"
+                >
+                  Close Game
+                </button>
+              </Link>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

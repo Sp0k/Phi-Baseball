@@ -4,7 +4,7 @@ function HomePage() {
   return (
     <main className="fixed top-12 sm:top-14 w-full h-full sm:left-10 lg:left-18">
       {/* Background */}
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[url(/public/baseball-field-bg.jpg)] bg-cover bg-center filter grayscale" />
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[url(/baseball-field-bg.jpg)] bg-cover bg-center filter grayscale" />
 
       {/* Main Content */}
       <div className="mx-auto max-w-2xl my-36 py-10 sm:py-20 sm:my-48 bg-black/45 sm:rounded-xl backdrop-blur-md">

@@ -21,7 +21,7 @@ function Lobby({ room, gameStateCallback }: LobbyProps) {
   const playersReady = useSubmittersCount(room?.id);
 
   return (
-    <div className="max-w-xl flex justify-center mx-auto">
+    <div className="max-w-xl flex justify-center mx-auto mt-30">
       <div>
         <h3 
           className="mx-auto text-3xl text-phidelt-navy/70 text-center -mt-5 mb-4 sm:mb-6 font-semibold"

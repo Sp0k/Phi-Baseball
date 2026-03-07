@@ -27,7 +27,7 @@ function NewGameForm({ roomCallback }: NewGameFormProps) {
   }
 
   return (
-    <div className="flex flex-col h-full max-w-72 mx-auto">
+    <div className="flex flex-col mt-30 max-w-72 mx-auto">
       <h3 className="mx-auto text-3xl text-center -mt-3 mb-4 sm:mb-6 font-semibold">New Game</h3>
       <label 
         htmlFor="numOfFacts"

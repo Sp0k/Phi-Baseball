@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { LuNotebook } from "react-icons/lu";
 import { IoHomeOutline } from "react-icons/io5";
 import { FaGamepad } from "react-icons/fa";
+import { GrArticle } from "react-icons/gr";
 
 interface SideBarIconProps {
   icon: ReactNode;
@@ -47,6 +48,7 @@ const NavBar = ({ isActive }: NavBarProps) => {
       <hr className="mx-2 text-phidelt-light-blue py-1" />
       <Link to="/play"><SideBarIcon icon={<FaGamepad size="24"/>} text="Play"/></Link>
       <Link to="/rules"><SideBarIcon icon={<LuNotebook size="22" />} text="Rules" /></Link>
+      <Link to="/devlog"><SideBarIcon icon={<GrArticle size="22" />} text="Updates" /></Link>
     </div>
   );
 };
