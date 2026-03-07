@@ -6,10 +6,7 @@ import HomePage from './pages/HomePage'
 import Header from './components/Header'
 import { useEffect, useState } from 'react'
 import PlayPage from './pages/PlayPage'
-
-function Rules() {
-  return <h1>Rules</h1>
-}
+import RulesPage from './pages/RulesPage'
 
 function App() {
   const [sideBarActive, setSideBarActive] = useState(false);
@@ -36,7 +33,7 @@ function App() {
         <Route path="/play" element={<PlayPage />} />
         <Route path="/host" element={<HostPage />} />
         <Route path="/join" element={<JoinPage />} />
-        <Route path="/rules" element={<Rules />} />
+        <Route path="/rules" element={<RulesPage />} />
       </Routes>
     </>
   )
