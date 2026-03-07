@@ -1,24 +1,37 @@
 import { auth, db } from "@/firebase";
-import { push, ref, set, update} from "firebase/database";
+import { push, ref, set, update } from "firebase/database";
 import { type Room } from "@/models/room";
 import { factsKey, playersKey, roomRefKey } from "@/models/keys";
+import { type Team } from "@/models/team";
 
 export type FactModel = {
   level: number,
   fact: string,
 }
 
-export async function submitFacts(room: Room, name: string, facts: FactModel[]) {
-  if (!room) return
+export async function submitFacts(
+  room: Room,
+  name: string,
+  team: Team,
+  facts: FactModel[]
+) {
+  if (!room) return;
+
   const uid = auth.currentUser!.uid;
   const base = `${roomRefKey}/${room.id}`;
 
-  await set(ref(db, `${base}/${playersKey}/${uid}`), {name});
+  await set(ref(db, `${base}/${playersKey}/${uid}`), {
+    name,
+    team,
+  });
 
-  const updates: Record<string, any> = {};
+  const updates: Record<string, unknown> = {};
   for (const f of facts) {
     const factId = push(ref(db, `${base}/${factsKey}/${uid}/${f.level}`)).key!;
-    updates[`${base}/${factsKey}/${uid}/${f.level}/${factId}`] = { text: f.fact.trim() };
+    updates[`${base}/${factsKey}/${uid}/${f.level}/${factId}`] = {
+      text: f.fact.trim(),
+    };
   }
+
   await update(ref(db), updates);
 }

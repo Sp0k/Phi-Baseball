@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ref, update } from "firebase/database";
 import { db } from "@/firebase";
 import { roomRefKey } from "@/models/keys";
 import { type Room } from "@/models/room";
 import { GAMESTAGES, type GameStage } from "@/models/game-stage";
+import { TEAMS, type Team } from "@/models/team";
 import { 
   getAllFactsOnce, 
   groupFactsByLevel, 
@@ -27,11 +27,22 @@ function Game({ room, gameStateCallback }: GameProps) {
   const [current, setCurrent] = useState<HostFact | null>(null);
   const [displayName, setDisplayName] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [turnTeam, setTurnTeam] = useState<Team>(TEAMS.BROTHERS);
 
   const levels = useMemo(
     () => Array.from({ length: room.factQuantity }, (_, i) => i + 1),
     [room.factQuantity]
   );
+
+  const eligibleBuckets = useMemo(() => {
+    const filtered: Buckets = {};
+
+    for (const level of levels) {
+      filtered[level] = (buckets[level] ?? []).filter((fact) => fact.ownerTeam !== turnTeam);
+    }
+
+    return filtered;
+  }, [buckets, levels, turnTeam]);
 
   const totalLeft = useMemo(
     () => levels.reduce((sum, lvl) => sum + (buckets[lvl]?.length ?? 0), 0),
@@ -80,7 +91,6 @@ function Game({ room, gameStateCallback }: GameProps) {
   useEffect(() => {
     if (!loaded) return;
 
-    // End only when there are no facts left AND the last card is closed
     if (totalLeft === 0 && current === null) {
       gameStateCallback(GAMESTAGES.DONE);
       void endRoomAndForget(room.id);
@@ -89,18 +99,18 @@ function Game({ room, gameStateCallback }: GameProps) {
 
   const pickFromLevel = (level: number) => {
     setBuckets((prev) => {
-      const list = prev[level] ?? [];
-      if (list.length === 0) return prev;
+      const allAtLevel = prev[level] ?? [];
+      const eligibleAtLevel = allAtLevel.filter((fact) => fact.ownerTeam !== turnTeam);
 
-      const idx = Math.floor(Math.random() * list.length);
-      const fact = list[idx];
+      if (eligibleAtLevel.length === 0) return prev;
 
-      const nextList = list.slice();
-      nextList.splice(idx, 1);
+      const chosen = eligibleAtLevel[Math.floor(Math.random() * eligibleAtLevel.length)];
 
-      setCurrent(fact);
+      const nextList = allAtLevel.filter((fact) => fact.id !== chosen.id);
+
+      setCurrent(chosen);
       setDisplayName(false);
-      void markFactUsed(room.id, fact).catch(console.error);
+      void markFactUsed(room.id, chosen).catch(console.error);
 
       return { ...prev, [level]: nextList };
     });
@@ -109,24 +119,41 @@ function Game({ room, gameStateCallback }: GameProps) {
   return (
     <div>
       {current === null && (
-        <div className="flex justify-center gap-8">
-          {levels.map((level) => {
-            const leftOver = buckets[level]?.length ?? 0;
-            return (
-              <div key={level} className="flex flex-col">
-                <button
-                  className="cursor-pointer"
-                  onClick={() => pickFromLevel(level)}
-                  disabled={leftOver === 0}
-                >
-                  <div className="bg-white rounded-lg px-10 py-2 shadow-sm/20 hover:shadow-sm/50 transition-all duration-100">
-                    Level {level} <br />({leftOver} left)
-                  </div>
-                </button>
-              </div>
-            );
-          })}
-        </div>
+        <>
+          <div className="flex justify-center mb-6">
+            <label className="flex flex-col text-center font-semibold">
+              Current team guessing
+              <select
+                value={turnTeam}
+                onChange={(e) => setTurnTeam(e.target.value as Team)}
+                className="mt-2 border-2 border-phidelt-navy rounded bg-white px-3 py-2"
+              >
+                <option value={TEAMS.BROTHERS}>{TEAMS.BROTHERS}</option>
+                <option value={TEAMS.PHIKEIAS}>{TEAMS.PHIKEIAS}</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="flex justify-center gap-8">
+            {levels.map((level) => {
+              const leftOver = eligibleBuckets[level]?.length ?? 0;
+
+              return (
+                <div key={level} className="flex flex-col">
+                  <button
+                    className="cursor-pointer"
+                    onClick={() => pickFromLevel(level)}
+                    disabled={leftOver === 0}
+                  >
+                    <div className="bg-white rounded-lg px-10 py-2 shadow-sm/20 hover:shadow-sm/50 transition-all duration-100">
+                      Level {level} <br />({leftOver} left)
+                    </div>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {current && (

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { TEAMS, type Team } from "@/models/team";
 
 interface FactsFormProps {
   roomId: string,
   factQuantity: number,
-  onSubmit: (data: { name: string; facts: FactModel[] }) => void | Promise<void>;
+  onSubmit: (data: { name: string; team: Team; facts: FactModel[] }) => void | Promise<void>;
   initialName: string,
+  initialTeam?: Team,
   initialFacts: FactModel[],
 }
 
@@ -22,9 +24,11 @@ function FactsForm({
   factQuantity,
   onSubmit,
   initialName = "",
+  initialTeam = TEAMS.BROTHERS,
   initialFacts = []
 }: FactsFormProps) {
   const [name, setName] = useState(initialName);
+  const [team, setTeam] = useState<Team>(initialTeam);
   const [facts, setFacts] = useState<FactModel[]>(padOrSlice(initialFacts, factQuantity));
 
   useEffect(() => {
@@ -50,20 +54,25 @@ function FactsForm({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!allFilled) return;
-    onSubmit({
+
+    void onSubmit({
       name: name.trim(),
+      team,
       facts: facts.map(({ level, fact }) => ({ level, fact: fact.trim() })),
     });
-  }
+  };
 
   return (
     <div className="max-w-xl flex justify-center mx-auto">
       <div>
-        <h3 className="mx-auto text-3xl text-phidelt-navy/70 text-center -mt-3 mb-4 sm:mb-6 font-semibold">{roomId}</h3>
+        <h3 className="mx-auto text-3xl text-phidelt-navy/70 text-center -mt-3 mb-4 sm:mb-6 font-semibold">
+          {roomId}
+        </h3>
+
         <form className="w-full" onSubmit={submit}>
           <label
             htmlFor="nameInput"
-            className="text-lg font-semibold mb-1 flex flex-col"
+            className="text-lg font-semibold mb-3 flex flex-col"
           >
             Name
             <input
@@ -75,6 +84,23 @@ function FactsForm({
               required
               className="border-2 border-phidelt-navy rounded bg-phidelt-navy/20 font-normal text-base px-2 py-1 focus:outline-none"
             />
+          </label>
+
+          <label
+            htmlFor="teamSelect"
+            className="text-lg font-semibold mb-4 flex flex-col"
+          >
+            Team
+            <select
+              id="teamSelect"
+              name="teamSelect"
+              value={team}
+              onChange={(e) => setTeam(e.target.value as Team)}
+              className="border-2 border-phidelt-navy rounded bg-phidelt-navy/20 font-normal text-base px-2 py-1 focus:outline-none"
+            >
+              <option value={TEAMS.BROTHERS}>{TEAMS.BROTHERS}</option>
+              <option value={TEAMS.PHIKEIAS}>{TEAMS.PHIKEIAS}</option>
+            </select>
           </label>
 
           {facts.map((value, i) => (
@@ -92,7 +118,8 @@ function FactsForm({
                 onChange={e => handleChangeFact(i, e.target.value)}
                 required
                 className="border-2 border-phidelt-navy rounded font-normal text-base bg-phidelt-navy/20 px-2 py-1 focus:outline-none"
-              /><br/>
+              />
+              <br />
             </label>
           ))}
 

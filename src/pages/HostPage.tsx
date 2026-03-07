@@ -29,7 +29,7 @@ function HostPage() {
   return (
     <main className="sm:fixed top-12 sm:top-14 w-full sm:h-full sm:left-10 lg:left-18 bg-slate-300">
       <div className="mx-auto max-w-2xl my-5 py-10 sm:my-20 flex flex-col justify-center">
-        <h2 className="text-7xl text-black mx-auto text-center my-10 sm:mb-20 font-bold">Host</h2>
+        <h2 className="text-7xl text-black mx-auto text-center my-10 sm:mb-20 font-bold backdrop-blur-xl bg-slate-100/30 rounded px-3 py-2">{room?.gameStage === GAMESTAGES.ACTIVE ? "Match" : "Host"}</h2>
         {
           (gameStage === GAMESTAGES.PREGAME) && <NewGameForm roomCallback={(room) => setRoom(room)} />
         }
