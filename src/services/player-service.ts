@@ -1,5 +1,5 @@
 import { auth, db } from "@/firebase";
-import { push, ref, set, update } from "firebase/database";
+import { push, ref, set, update, serverTimestamp } from "firebase/database";
 import { type Room } from "@/models/room";
 import { factsKey, playersKey, roomRefKey } from "@/models/keys";
 import { type Team } from "@/models/team";
@@ -23,6 +23,7 @@ export async function submitFacts(
   await set(ref(db, `${base}/${playersKey}/${uid}`), {
     name,
     team,
+    joinedAt: serverTimestamp(),
   });
 
   const updates: Record<string, unknown> = {};

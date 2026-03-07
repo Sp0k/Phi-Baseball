@@ -1,7 +1,7 @@
 import { db } from "@/firebase";
 import { ref, child, get, set } from "firebase/database";
 import { roomRefKey, factsKey, playersKey } from "@/models/keys";
-import { type Team } from "@/models/team";
+import { type Team, TEAMS } from "@/models/team";
 
 export type HostFact = {
   id: string;
@@ -12,9 +12,11 @@ export type HostFact = {
   ownerTeam?: Team;
 };
 
-type PlayerRecord = {
-  name?: string;
-  team?: Team;
+export type PlayerRecord = {
+  uid: string;
+  name: string;
+  team: Team;
+  joinedAt?: number;
 };
 
 function flattenFacts(
@@ -95,4 +97,34 @@ export async function getUsedFacts(roomCode: string): Promise<Set<string>> {
 
 export async function markFactUsed(roomCode: string, f: HostFact): Promise<void> {
   await set(ref(db, `${roomRefKey}/${roomCode}/usedFacts/${f.ownerUid}/${f.level}/${f.id}`), true);
+}
+
+export async function getPlayersOnce(roomCode: string): Promise<Record<Team, PlayerRecord[]>> {
+  const snap = await get(child(ref(db, `${roomRefKey}/${roomCode}`), playersKey));
+
+  const grouped: Record<Team, PlayerRecord[]> = {
+    [TEAMS.BROTHERS]: [],
+    [TEAMS.PHIKEIAS]: [],
+  };
+
+  if (!snap.exists()) return grouped;
+
+  const raw = snap.val() as Record<string, { name?: string; team?: Team; joinedAt?: number }>;
+
+  for (const [uid, p] of Object.entries(raw)) {
+    if (!p.team || !p.name) continue;
+
+    grouped[p.team].push({
+      uid,
+      name: p.name,
+      team: p.team,
+      joinedAt: p.joinedAt,
+    });
+  }
+
+  for (const team of [TEAMS.BROTHERS, TEAMS.PHIKEIAS] as const) {
+    grouped[team].sort((a, b) => (a.joinedAt ?? 0) - (b.joinedAt ?? 0));
+  }
+
+  return grouped;
 }
