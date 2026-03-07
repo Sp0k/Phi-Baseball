@@ -5,6 +5,8 @@ import { roomRefKey } from "@/models/keys";
 import { type Room } from "@/models/room";
 import { GAMESTAGES, type GameStage } from "@/models/game-stage";
 import { TEAMS, type Team } from "@/models/team";
+import { type Scoreboard } from "@/models/score";
+import { createEmptyScoreboard, applyBasesToTeam } from "@/services/score-service";
 import { 
   getAllFactsOnce, 
   groupFactsByLevel, 
@@ -29,152 +31,208 @@ function Game({ room, gameStateCallback }: GameProps) {
   const [loaded, setLoaded] = useState(false);
   const [turnTeam, setTurnTeam] = useState<Team>(TEAMS.BROTHERS);
 
+  const [scoreboard, setScoreboard] = useState<Scoreboard>(createEmptyScoreboard());
+
   const levels = useMemo(
     () => Array.from({ length: room.factQuantity }, (_, i) => i + 1),
-    [room.factQuantity]
-  );
+      [room.factQuantity]
+    );
 
   const eligibleBuckets = useMemo(() => {
     const filtered: Buckets = {};
 
-    for (const level of levels) {
-      filtered[level] = (buckets[level] ?? []).filter((fact) => fact.ownerTeam !== turnTeam);
-    }
+  for (const level of levels) {
+    filtered[level] = (buckets[level] ?? []).filter((fact) => fact.ownerTeam !== turnTeam);
+  }
 
-    return filtered;
-  }, [buckets, levels, turnTeam]);
+  return filtered;
+}, [buckets, levels, turnTeam]);
 
-  const totalLeft = useMemo(
-    () => levels.reduce((sum, lvl) => sum + (buckets[lvl]?.length ?? 0), 0),
+const totalLeft = useMemo(
+  () => levels.reduce((sum, lvl) => sum + (buckets[lvl]?.length ?? 0), 0),
     [levels, buckets]
   );
 
-  const registerClick = () => {
-    if (displayName) {
-      setDisplayName(false);
+const registerClick = () => {
+  if (displayName) {
+    setDisplayName(false);
+    setCurrent(null);
+  } else {
+    setDisplayName(true);
+  }
+};
+
+useEffect(() => {
+  let cancelled = false;
+
+  (async () => {
+    setLoaded(false);
+
+    await update(ref(db, `${roomRefKey}/${room.id}`), { state: GAMESTAGES.ACTIVE });
+
+    const [allFacts, used] = await Promise.all([
+      getAllFactsOnce(room.id),
+      getUsedFacts(room.id),
+    ]);
+
+    const remainingFacts = allFacts.filter((f) => !used.has(usedKey(f)));
+    const byLevel = groupFactsByLevel(remainingFacts);
+
+    if (!cancelled) {
+      setBuckets(byLevel);
       setCurrent(null);
-    } else {
-      setDisplayName(true);
-    }
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      setLoaded(false);
-
-      await update(ref(db, `${roomRefKey}/${room.id}`), { state: GAMESTAGES.ACTIVE });
-
-      const [allFacts, used] = await Promise.all([
-        getAllFactsOnce(room.id),
-        getUsedFacts(room.id),
-      ]);
-
-      const remainingFacts = allFacts.filter((f) => !used.has(usedKey(f)));
-      const byLevel = groupFactsByLevel(remainingFacts);
-
-      if (!cancelled) {
-        setBuckets(byLevel);
-        setCurrent(null);
-        setDisplayName(false);
-        setLoaded(true);
-        gameStateCallback(GAMESTAGES.ACTIVE);
-      }
-    })().catch(console.error);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [room.id, gameStateCallback]);
-
-  useEffect(() => {
-    if (!loaded) return;
-
-    if (totalLeft === 0 && current === null) {
-      gameStateCallback(GAMESTAGES.DONE);
-      void endRoomAndForget(room.id);
-    }
-  }, [loaded, totalLeft, current, room.id, gameStateCallback]);
-
-  const pickFromLevel = (level: number) => {
-    setBuckets((prev) => {
-      const allAtLevel = prev[level] ?? [];
-      const eligibleAtLevel = allAtLevel.filter((fact) => fact.ownerTeam !== turnTeam);
-
-      if (eligibleAtLevel.length === 0) return prev;
-
-      const chosen = eligibleAtLevel[Math.floor(Math.random() * eligibleAtLevel.length)];
-
-      const nextList = allAtLevel.filter((fact) => fact.id !== chosen.id);
-
-      setCurrent(chosen);
       setDisplayName(false);
-      void markFactUsed(room.id, chosen).catch(console.error);
+      setScoreboard(createEmptyScoreboard());
+      setLoaded(true);
+      gameStateCallback(GAMESTAGES.ACTIVE);
+    }
+  })().catch(console.error);
 
-      return { ...prev, [level]: nextList };
-    });
+  return () => {
+    cancelled = true;
   };
+}, [room.id, gameStateCallback]);
 
-  return (
-    <div>
-      {current === null && (
-        <>
-          <div className="flex justify-center mb-6">
-            <label className="flex flex-col text-center font-semibold">
-              Current team guessing
-              <select
-                value={turnTeam}
-                onChange={(e) => setTurnTeam(e.target.value as Team)}
-                className="mt-2 border-2 border-phidelt-navy rounded bg-white px-3 py-2"
-              >
-                <option value={TEAMS.BROTHERS}>{TEAMS.BROTHERS}</option>
-                <option value={TEAMS.PHIKEIAS}>{TEAMS.PHIKEIAS}</option>
-              </select>
-            </label>
-          </div>
+useEffect(() => {
+  if (!loaded) return;
 
-          <div className="flex justify-center gap-8">
-            {levels.map((level) => {
-              const leftOver = eligibleBuckets[level]?.length ?? 0;
+  if (totalLeft === 0 && current === null) {
+    gameStateCallback(GAMESTAGES.DONE);
+    void endRoomAndForget(room.id);
+  }
+}, [loaded, totalLeft, current, room.id, gameStateCallback]);
 
-              return (
-                <div key={level} className="flex flex-col">
-                  <button
-                    className="cursor-pointer"
-                    onClick={() => pickFromLevel(level)}
-                    disabled={leftOver === 0}
-                  >
-                    <div className="bg-white rounded-lg px-10 py-2 shadow-sm/20 hover:shadow-sm/50 transition-all duration-100">
-                      Level {level} <br />({leftOver} left)
-                    </div>
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+const pickFromLevel = (level: number) => {
+  setBuckets((prev) => {
+    const allAtLevel = prev[level] ?? [];
+    const eligibleAtLevel = allAtLevel.filter((fact) => fact.ownerTeam !== turnTeam);
 
-      {current && (
-        <div className="w-full flex justify-center">
-          <button onClick={registerClick} className="cursor-pointer">
-            <div className="bg-white rounded-2xl p-4 shadow-sm/20 min-h-80 w-100 mx-auto flex flex-col">
-              <p className="text-black text-3xl flex-1 flex items-center justify-center text-center px-2">
-                {current.text}
-              </p>
+    if (eligibleAtLevel.length === 0) return prev;
 
-              {displayName && (
-                <p className="font-semibold text-2xl text-phidelt-red text-center mt-auto">
-                  {current.ownerName ?? current.ownerUid}
-                </p>
-              )}
-            </div>
-          </button>
-        </div>
-      )}
-    </div>
+    const chosen = eligibleAtLevel[Math.floor(Math.random() * eligibleAtLevel.length)];
+    const nextList = allAtLevel.filter((fact) => fact.id !== chosen.id);
+
+    setCurrent(chosen);
+    setDisplayName(false);
+    void markFactUsed(room.id, chosen).catch(console.error);
+
+    return { ...prev, [level]: nextList };
+  });
+};
+
+const awardWinToCurrentTeam = () => {
+  if (!current) return;
+
+  setScoreboard((prev) =>
+    applyBasesToTeam(prev, turnTeam, current.level, room.factQuantity)
   );
+
+  setCurrent(null);
+  setDisplayName(false);
+};
+
+const registerLossForCurrentTeam = () => {
+  setCurrent(null);
+  setDisplayName(false);
+};
+
+return (
+  <div>
+    <div className="w-full flex justify-center mb-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl px-6 py-4 shadow-sm min-w-52 text-center">
+          <h3 className="font-bold text-lg">{TEAMS.BROTHERS}</h3>
+          <p className="text-xl mt-2">Runs: {scoreboard[TEAMS.BROTHERS].runs}</p>
+          <p className="text-base text-slate-600">
+            Bases: {scoreboard[TEAMS.BROTHERS].bases} / {room.factQuantity}
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl px-6 py-4 shadow-sm min-w-52 text-center">
+          <h3 className="font-bold text-lg">{TEAMS.PHIKEIAS}</h3>
+          <p className="text-xl mt-2">Runs: {scoreboard[TEAMS.PHIKEIAS].runs}</p>
+          <p className="text-base text-slate-600">
+            Bases: {scoreboard[TEAMS.PHIKEIAS].bases} / {room.factQuantity}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {current === null && (
+      <>
+        <div className="flex justify-center mb-6">
+          <label className="flex flex-col text-center font-semibold">
+            Current team guessing
+            <select
+              value={turnTeam}
+              onChange={(e) => setTurnTeam(e.target.value as Team)}
+              className="mt-2 border-2 border-phidelt-navy rounded bg-white px-3 py-2"
+            >
+              <option value={TEAMS.BROTHERS}>{TEAMS.BROTHERS}</option>
+              <option value={TEAMS.PHIKEIAS}>{TEAMS.PHIKEIAS}</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="flex justify-center gap-8">
+          {levels.map((level) => {
+            const leftOver = eligibleBuckets[level]?.length ?? 0;
+
+            return (
+              <div key={level} className="flex flex-col">
+                <button
+                  className="cursor-pointer"
+                  onClick={() => pickFromLevel(level)}
+                  disabled={leftOver === 0}
+                >
+                  <div className="bg-white rounded-lg px-10 py-2 shadow-sm/20 hover:shadow-sm/50 transition-all duration-100">
+                    Level {level} <br />({leftOver} left)
+                  </div>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    )}
+
+    {current && (
+      <div className="w-full flex flex-col items-center">
+        <button onClick={registerClick} className="cursor-pointer">
+          <div className="bg-white rounded-2xl p-4 shadow-sm/20 min-h-80 w-100 mx-auto flex flex-col">
+            <p className="text-black text-3xl flex-1 flex items-center justify-center text-center px-2">
+              {current.text}
+            </p>
+
+            {displayName && (
+              <p className="font-semibold text-2xl text-phidelt-red text-center mt-auto">
+                {current.ownerName ?? current.ownerUid}
+              </p>
+            )}
+          </div>
+        </button>
+
+        {displayName && 
+          <div className="flex gap-4 mt-6">
+            <button
+              onClick={awardWinToCurrentTeam}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg"
+            >
+              Win
+            </button>
+
+            <button
+              onClick={registerLossForCurrentTeam}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg"
+            >
+              Lose
+            </button>
+          </div>
+        }
+      </div>
+    )}
+  </div>
+);
 }
 
 export default Game;
