@@ -1,13 +1,13 @@
-import { TEAMS, type Team } from "@/models/team";
+import { TEAM_KEYS, type TeamKey } from "@/models/team";
 import { type Scoreboard } from "@/models/score";
 
 export function createEmptyScoreboard(): Scoreboard {
   return {
-    [TEAMS.BROTHERS]: {
+    [TEAM_KEYS.A]: {
       runs: 0,
       bases: 0,
     },
-    [TEAMS.PHIKEIAS]: {
+    [TEAM_KEYS.B]: {
       runs: 0,
       bases: 0,
     },
@@ -16,7 +16,7 @@ export function createEmptyScoreboard(): Scoreboard {
 
 export function applyBasesToTeam(
   scoreboard: Scoreboard,
-  team: Team,
+  team: TeamKey,
   basesWon: number,
   basesPerRun: number,
 ): Scoreboard {

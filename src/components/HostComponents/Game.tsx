@@ -5,7 +5,7 @@ import { db } from "@/firebase";
 import { roomRefKey } from "@/models/keys";
 import { type Room } from "@/models/room";
 import { GAMESTAGES, type GameStage } from "@/models/game-stage";
-import { TEAMS, type Team } from "@/models/team";
+import { TEAM_KEYS, type TeamKey, getTeamLabel } from "@/models/team";
 import { type Scoreboard } from "@/models/score";
 import { createEmptyScoreboard, applyBasesToTeam } from "@/services/score-service";
 import {
@@ -34,16 +34,16 @@ function Game({ room, gameStateCallback }: GameProps) {
   const [displayName, setDisplayName] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  const [lineups, setLineups] = useState<Record<Team, PlayerRecord[]>>({
-    [TEAMS.BROTHERS]: [],
-    [TEAMS.PHIKEIAS]: [],
+  const [lineups, setLineups] = useState<Record<TeamKey, PlayerRecord[]>>({
+    [TEAM_KEYS.A]: [],
+    [TEAM_KEYS.B]: [],
   });
 
-  const [turnTeam, setTurnTeam] = useState<Team>(TEAMS.PHIKEIAS);
+  const [turnTeam, setTurnTeam] = useState<TeamKey>(TEAM_KEYS.B);
 
-  const [turnIndex, setTurnIndex] = useState<Record<Team, number>>({
-    [TEAMS.BROTHERS]: 0,
-    [TEAMS.PHIKEIAS]: 0,
+  const [turnIndex, setTurnIndex] = useState<Record<TeamKey, number>>({
+    [TEAM_KEYS.A]: 0,
+    [TEAM_KEYS.B]: 0,
   });
 
   const [strikes, setStrikes] = useState<number>(0);
@@ -56,32 +56,32 @@ function Game({ room, gameStateCallback }: GameProps) {
   );
 
   const winnerSummary = useMemo(() => {
-    const brothers = scoreboard[TEAMS.BROTHERS];
-    const phikeias = scoreboard[TEAMS.PHIKEIAS];
+    const teamA = scoreboard[TEAM_KEYS.A];
+    const teamB = scoreboard[TEAM_KEYS.B];
 
-    if (brothers.runs > phikeias.runs) {
-      return { winner: TEAMS.BROTHERS, isTie: false };
+    if (teamA.runs > teamB.runs) {
+      return { winner: TEAM_KEYS.A, isTie: false };
     }
 
-    if (phikeias.runs > brothers.runs) {
-      return { winner: TEAMS.PHIKEIAS, isTie: false };
+    if (teamB.runs > teamA.runs) {
+      return { winner: TEAM_KEYS.B, isTie: false };
     }
 
-    if (brothers.bases > phikeias.bases) {
-      return { winner: TEAMS.BROTHERS, isTie: false };
+    if (teamA.bases > teamB.bases) {
+      return { winner: TEAM_KEYS.A, isTie: false };
     }
 
-    if (phikeias.bases > brothers.bases) {
-      return { winner: TEAMS.PHIKEIAS, isTie: false };
+    if (teamB.bases > teamA.bases) {
+      return { winner: TEAM_KEYS.B, isTie: false };
     }
 
     return { winner: null, isTie: true };
   }, [scoreboard]);
 
-  const otherTeam = (team: Team): Team =>
-    team === TEAMS.BROTHERS ? TEAMS.PHIKEIAS : TEAMS.BROTHERS;
+  const otherTeam = (team: TeamKey): TeamKey =>
+    team === TEAM_KEYS.A ? TEAM_KEYS.B : TEAM_KEYS.A;
 
-  const factsLeftForTeam = (team: Team, sourceBuckets: Buckets = buckets): number => {
+  const factsLeftForTeam = (team: TeamKey, sourceBuckets: Buckets = buckets): number => {
     return levels.reduce((sum, level) => {
       const eligible = (sourceBuckets[level] ?? []).filter(
         (fact) => fact.ownerTeam !== team
@@ -115,7 +115,7 @@ function Game({ room, gameStateCallback }: GameProps) {
     [levels, buckets]
   );
 
-  const advancePlayerForTeam = (team: Team) => {
+  const advancePlayerForTeam = (team: TeamKey) => {
     setTurnIndex((prev) => {
       const teamPlayers = lineups[team] ?? [];
       if (teamPlayers.length === 0) return prev;
@@ -132,10 +132,7 @@ function Game({ room, gameStateCallback }: GameProps) {
   };
 
   const registerClick = () => {
-    if (displayName) {
-      setDisplayName(false);
-      setCurrent(null);
-    } else {
+    if (!displayName) {
       setDisplayName(true);
     }
   };
@@ -162,10 +159,10 @@ function Game({ room, gameStateCallback }: GameProps) {
       if (!cancelled) {
         setBuckets(byLevel);
         setLineups(players);
-        setTurnTeam(TEAMS.PHIKEIAS);
+        setTurnTeam(TEAM_KEYS.A);
         setTurnIndex({
-          [TEAMS.BROTHERS]: 0,
-          [TEAMS.PHIKEIAS]: 0,
+          [TEAM_KEYS.A]: 0,
+          [TEAM_KEYS.B]: 0,
         });
         setStrikes(0);
         setPhase("normal");
@@ -276,6 +273,8 @@ function Game({ room, gameStateCallback }: GameProps) {
     endTurn(false);
   };
 
+  const teamLabel = (team: TeamKey) => getTeamLabel(room.teamMode, team);
+
   return (
     <div className="w-full h-[calc(100dvh-10rem)] px-4 py-4">
       <div className="mx-auto h-full w-full grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -286,18 +285,18 @@ function Game({ room, gameStateCallback }: GameProps) {
 
             <div className="grid grid-cols-1 gap-4">
               <div className="rounded-lg border border-slate-200 px-4 py-4 text-center">
-                <h3 className="font-bold text-lg">{TEAMS.BROTHERS}</h3>
-                <p className="text-xl mt-2">Runs: {scoreboard[TEAMS.BROTHERS].runs}</p>
+                <h3 className="font-bold text-lg">{teamLabel(TEAM_KEYS.A)}</h3>
+                <p className="text-xl mt-2">Runs: {scoreboard[TEAM_KEYS.A].runs}</p>
                 <p className="text-base text-slate-600">
-                  Bases: {scoreboard[TEAMS.BROTHERS].bases} / {room.factQuantity}
+                  Bases: {scoreboard[TEAM_KEYS.A].bases} / {room.factQuantity}
                 </p>
               </div>
 
               <div className="rounded-lg border border-slate-200 px-4 py-4 text-center">
-                <h3 className="font-bold text-lg">{TEAMS.PHIKEIAS}</h3>
-                <p className="text-xl mt-2">Runs: {scoreboard[TEAMS.PHIKEIAS].runs}</p>
+                <h3 className="font-bold text-lg">{teamLabel(TEAM_KEYS.B)}</h3>
+                <p className="text-xl mt-2">Runs: {scoreboard[TEAM_KEYS.B].runs}</p>
                 <p className="text-base text-slate-600">
-                  Bases: {scoreboard[TEAMS.PHIKEIAS].bases} / {room.factQuantity}
+                  Bases: {scoreboard[TEAM_KEYS.B].bases} / {room.factQuantity}
                 </p>
               </div>
             </div>
@@ -309,7 +308,7 @@ function Game({ room, gameStateCallback }: GameProps) {
             <div className="space-y-4 text-center">
               <div>
                 <p className="text-sm text-slate-500">Current team</p>
-                <h3 className="text-2xl font-bold">{turnTeam}</h3>
+                <h3 className="text-2xl font-bold">{teamLabel(turnTeam)}</h3>
               </div>
 
               <div>
@@ -412,24 +411,24 @@ function Game({ room, gameStateCallback }: GameProps) {
                 <p className="text-2xl font-semibold mb-6">It's a tie!</p>
               ) : (
                   <p className="text-2xl font-semibold mb-6">
-                    Winning team: {winnerSummary.winner}
+                    Winning team: {winnerSummary.winner ? teamLabel(winnerSummary.winner) : ""}
                   </p>
                 )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
                 <div className="bg-slate-100 rounded-xl px-6 py-5 shadow-sm">
-                  <h3 className="text-xl font-bold mb-2">{TEAMS.BROTHERS}</h3>
-                  <p className="text-lg">Runs: {scoreboard[TEAMS.BROTHERS].runs}</p>
+                  <h3 className="text-xl font-bold mb-2">{teamLabel(TEAM_KEYS.A)}</h3>
+                  <p className="text-lg">Runs: {scoreboard[TEAM_KEYS.A].runs}</p>
                   <p className="text-base text-slate-600">
-                    Bases: {scoreboard[TEAMS.BROTHERS].bases} / {room.factQuantity}
+                    Bases: {scoreboard[TEAM_KEYS.A].bases} / {room.factQuantity}
                   </p>
                 </div>
 
                 <div className="bg-slate-100 rounded-xl px-6 py-5 shadow-sm">
-                  <h3 className="text-xl font-bold mb-2">{TEAMS.PHIKEIAS}</h3>
-                  <p className="text-lg">Runs: {scoreboard[TEAMS.PHIKEIAS].runs}</p>
+                  <h3 className="text-xl font-bold mb-2">{teamLabel(TEAM_KEYS.B)}</h3>
+                  <p className="text-lg">Runs: {scoreboard[TEAM_KEYS.B].runs}</p>
                   <p className="text-base text-slate-600">
-                    Bases: {scoreboard[TEAMS.PHIKEIAS].bases} / {room.factQuantity}
+                    Bases: {scoreboard[TEAM_KEYS.B].bases} / {room.factQuantity}
                   </p>
                 </div>
               </div>

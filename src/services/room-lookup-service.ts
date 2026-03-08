@@ -35,10 +35,11 @@ export async function getRoomFromCode(code: string): Promise<Room | null> {
 
 async function fetchRoomData(code: string): Promise<Room | null> {
   const base = ref(db, `${roomRefKey}/${code}`);
-  const [stateSnap, fqSnap, createdSnap] = await Promise.all([
+  const [stateSnap, fqSnap, createdSnap, tmSnap] = await Promise.all([
     get(child(base, ROOMFIELDS.STATE)),
     get(child(base, ROOMFIELDS.FACTQUANTITY)),
     get(child(base, ROOMFIELDS.CREATEDAT)),
+    get(child(base, ROOMFIELDS.TEAMMODE)),
   ]);
 
   if (!stateSnap.exists() || stateSnap.val() === GAMESTAGES.DONE) return null;
@@ -48,6 +49,7 @@ async function fetchRoomData(code: string): Promise<Room | null> {
     factQuantity: fqSnap.val(),
     createdAt: createdSnap.val(),
     gameStage: stateSnap.val(),
+    teamMode: tmSnap.val(),
   }
 
   return room;

@@ -3,7 +3,7 @@ import { useState } from "react";
 import FactsForm from "@/components/JoinComponents/FactsForm";
 import JoinGameForm from "@/components/JoinComponents/JoinGameForm";
 import { submitFacts } from "@/services/player-service";
-import { TEAMS } from "@/models/team";
+import { TEAM_KEYS } from "@/models/team";
 
 function JoinPage() {
   const [room, setRoom] = useState<Room | null>(null);
@@ -21,12 +21,13 @@ function JoinPage() {
             <FactsForm
               roomId={room.id}
               factQuantity={room.factQuantity}
+              teamMode={room.teamMode}
               onSubmit={async ({ name, team, facts }) => {
                 await submitFacts(room, name, team, facts);
                 setSubmitted(true);
               }}
               initialName=""
-              initialTeam={TEAMS.BROTHERS}
+              initialTeam={TEAM_KEYS.A}
               initialFacts={[]}
             />
         }

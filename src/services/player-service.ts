@@ -2,7 +2,7 @@ import { auth, db } from "@/firebase";
 import { push, ref, set, update, serverTimestamp } from "firebase/database";
 import { type Room } from "@/models/room";
 import { factsKey, playersKey, roomRefKey } from "@/models/keys";
-import { type Team } from "@/models/team";
+import { type TeamKey } from "@/models/team";
 
 export type FactModel = {
   level: number,
@@ -12,7 +12,7 @@ export type FactModel = {
 export async function submitFacts(
   room: Room,
   name: string,
-  team: Team,
+  team: TeamKey,
   facts: FactModel[]
 ) {
   if (!room) return;

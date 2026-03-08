@@ -1,13 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import { TEAMS, type Team } from "@/models/team";
+import { 
+  TEAM_KEYS,
+  getTeamLabel,
+  type TeamKey,
+  type TeamMode,
+  DEFAULT_TEAM_MODE,
+} from "@/models/team";
 
 interface FactsFormProps {
-  roomId: string,
-  factQuantity: number,
-  onSubmit: (data: { name: string; team: Team; facts: FactModel[] }) => void | Promise<void>;
-  initialName: string,
-  initialTeam?: Team,
-  initialFacts: FactModel[],
+  roomId: string;
+  factQuantity: number;
+  teamMode: TeamMode;
+  onSubmit: (data: { name: string; team: TeamKey; facts: FactModel[] }) => void | Promise<void>;
+  initialName: string;
+  initialTeam?: TeamKey;
+  initialFacts: FactModel[];
 }
 
 type FactModel = {
@@ -23,13 +30,16 @@ function FactsForm({
   roomId,
   factQuantity,
   onSubmit,
+  teamMode,
   initialName = "",
-  initialTeam = TEAMS.BROTHERS,
+  initialTeam = TEAM_KEYS.A,
   initialFacts = []
 }: FactsFormProps) {
   const [name, setName] = useState(initialName);
-  const [team, setTeam] = useState<Team>(initialTeam);
+  const [team, setTeam] = useState<TeamKey>(initialTeam);
   const [facts, setFacts] = useState<FactModel[]>(padOrSlice(initialFacts, factQuantity));
+
+  const safeTeamMode = teamMode ?? DEFAULT_TEAM_MODE;
 
   useEffect(() => {
     setFacts(prev => padOrSlice(prev, factQuantity));
@@ -61,6 +71,8 @@ function FactsForm({
       facts: facts.map(({ level, fact }) => ({ level, fact: fact.trim() })),
     });
   };
+
+  console.log("FactsForm teamMode:", teamMode);
 
   return (
     <div className="max-w-xl flex justify-center mx-auto">
@@ -95,11 +107,11 @@ function FactsForm({
               id="teamSelect"
               name="teamSelect"
               value={team}
-              onChange={(e) => setTeam(e.target.value as Team)}
+              onChange={(e) => setTeam(e.target.value as TeamKey)}
               className="border-2 border-phidelt-navy rounded bg-phidelt-navy/20 font-normal text-base px-2 py-1 focus:outline-none"
             >
-              <option value={TEAMS.BROTHERS}>{TEAMS.BROTHERS}</option>
-              <option value={TEAMS.PHIKEIAS}>{TEAMS.PHIKEIAS}</option>
+              <option value={TEAM_KEYS.A}>{getTeamLabel(safeTeamMode, TEAM_KEYS.A)}</option>
+              <option value={TEAM_KEYS.B}>{getTeamLabel(safeTeamMode, TEAM_KEYS.B)}</option>
             </select>
           </label>
 
