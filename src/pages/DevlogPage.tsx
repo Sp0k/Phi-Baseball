@@ -1,34 +1,34 @@
 function DevlogPage() {
   const updates = [
     {
-      version: "v0.1.0",
+      version: "v0.6.1",
       date: "March 2026",
-      title: "Initial playable version",
+      title: "Loading indicator",
       changes: [
-        "Created the base room system for hosting and joining games.",
-        "Added player fact submission.",
-        "Set up the host game flow for drawing facts by level.",
+        "Added a loading indicator when loading into the room.",
+      ]
+    },
+    {
+      version: "v0.6.0",
+      date: "March 2026",
+      title: "Alternative Teams & QR Code",
+      changes: [
+        "Hosts can now choose the team format when creating a game.",
+        "Added support for Brothers vs Phikeias or Odds vs Evens team modes.",
+        "Team labels now update dynamically throughout the game based on the selected mode.",
+        "Room lookup and player join flow now correctly load the selected team mode.",
+        "Improved turn rotation so the next player in line starts when a team regains control.",
+        "Added QR code joining so players can scan and go directly to the fact submission form.",
       ],
     },
     {
-      version: "v0.2.0",
+      version: "v0.5.0",
       date: "March 2026",
-      title: "Teams update",
+      title: "Game host UI improvements",
       changes: [
-        "Added team selection when players join the game.",
-        "Players can now choose between Brothers and Phikeias.",
-        "Fact selection now only draws from players on the opposite team.",
-      ],
-    },
-    {
-      version: "v0.3.0",
-      date: "March 2026",
-      title: "Baseball scoring system",
-      changes: [
-        "Added baseball-inspired scoring.",
-        "Facts now give bases equal to their level.",
-        "Teams score a run whenever they collect enough bases for a full homerun.",
-        "Remaining extra bases carry over toward the next run.",
+        "Reworked the host layout into separate game info and gameplay sections.",
+        "Added a live scoreboard panel.",
+        "Added a game over screen showing the winning team and final score.",
       ],
     },
     {
@@ -43,13 +43,34 @@ function DevlogPage() {
       ],
     },
     {
-      version: "v0.5.0",
+      version: "v0.3.0",
       date: "March 2026",
-      title: "Game host UI improvements",
+      title: "Baseball scoring system",
       changes: [
-        "Reworked the host layout into separate game info and gameplay sections.",
-        "Added a live scoreboard panel.",
-        "Added a game over screen showing the winning team and final score.",
+        "Added baseball-inspired scoring.",
+        "Facts now give bases equal to their level.",
+        "Teams score a run whenever they collect enough bases for a full homerun.",
+        "Remaining extra bases carry over toward the next run.",
+      ],
+    },
+    {
+      version: "v0.2.0",
+      date: "March 2026",
+      title: "Teams update",
+      changes: [
+        "Added team selection when players join the game.",
+        "Players can now choose between Brothers and Phikeias.",
+        "Fact selection now only draws from players on the opposite team.",
+      ],
+    },
+    {
+      version: "v0.1.0",
+      date: "March 2026",
+      title: "Initial playable version",
+      changes: [
+        "Created the base room system for hosting and joining games.",
+        "Added player fact submission.",
+        "Set up the host game flow for drawing facts by level.",
       ],
     },
   ];
@@ -64,6 +85,7 @@ function DevlogPage() {
         <div className="flex flex-col gap-6">
           {updates.map((update) => (
             <section
+              id={update.version}
               key={update.version}
               className="bg-white rounded-2xl shadow-sm px-6 py-6"
             >

@@ -4,6 +4,7 @@ import { ref, update } from "firebase/database";
 import { roomRefKey } from "@/models/keys";
 import { db } from "@/firebase";
 import { useSubmittersCount } from "@/hooks/useSubmittersCount";
+import QRCode from "react-qr-code";
 
 interface LobbyProps {
   room: Room;
@@ -18,6 +19,8 @@ function Lobby({ room, gameStateCallback }: LobbyProps) {
     });
   }
 
+  const joinUrl = `${window.location.origin}/join?room=${room.id}`;
+
   const playersReady = useSubmittersCount(room?.id);
 
   return (
@@ -31,6 +34,15 @@ function Lobby({ room, gameStateCallback }: LobbyProps) {
         <p className="mx-auto font-semibold text-lg">
           There is <strong className="text-phidelt-blue underline">{playersReady}</strong> players ready
         </p>
+
+        <div className="bg-white mt-4 mb-1 sm:mt-6 sm:mb-2 flex justify-center p-4 rounded-xl shadow-sm">
+          <QRCode value={joinUrl} size={180} />
+        </div>
+
+        <p className="text-center text-base mb-2 sm:mb-4 text-slate-600 max-w-xs">
+          Scan to join this game directly.
+        </p>
+
         <div className="w-full flex justify-center">
           <button 
             onClick={startGame}
