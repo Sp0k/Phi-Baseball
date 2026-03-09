@@ -19,6 +19,12 @@ import {
   type PlayerRecord,
 } from "@/services/game-service";
 import { endRoomAndForget } from "@/services/host-room-pointer-service";
+import {
+  createDefaultGameData,
+  getGameData,
+  setGameData,
+  patchGameData,
+} from "@/services/game-state-service";
 
 interface GameProps {
   room: Room;
@@ -129,6 +135,7 @@ function Game({ room, gameStateCallback }: GameProps) {
 
   const endGame = () => {
     setPhase("done");
+    void patchGameData(room.id, { phase: "done" }).catch(console.error);
   };
 
   const registerClick = () => {
@@ -147,26 +154,30 @@ function Game({ room, gameStateCallback }: GameProps) {
         state: GAMESTAGES.ACTIVE,
       });
 
-      const [allFacts, used, players] = await Promise.all([
+      const [allFacts, used, players, savedGameData] = await Promise.all([
         getAllFactsOnce(room.id),
         getUsedFacts(room.id),
         getPlayersOnce(room.id),
+        getGameData(room.id),
       ]);
 
       const remainingFacts = allFacts.filter((f) => !used.has(usedKey(f)));
       const byLevel = groupFactsByLevel(remainingFacts);
 
+      const initialGameData = savedGameData ?? createDefaultGameData();
+
+      if (!savedGameData) {
+        await setGameData(room.id, initialGameData);
+      }
+
       if (!cancelled) {
         setBuckets(byLevel);
         setLineups(players);
-        setTurnTeam(TEAM_KEYS.A);
-        setTurnIndex({
-          [TEAM_KEYS.A]: 0,
-          [TEAM_KEYS.B]: 0,
-        });
-        setStrikes(0);
-        setPhase("normal");
-        setScoreboard(createEmptyScoreboard());
+        setTurnTeam(initialGameData.turnTeam);
+        setTurnIndex(initialGameData.turnIndex);
+        setStrikes(initialGameData.strikes);
+        setPhase(initialGameData.phase);
+        setScoreboard(initialGameData.scoreboard);
         setCurrent(null);
         setDisplayName(false);
         setLoaded(true);
@@ -178,6 +189,31 @@ function Game({ room, gameStateCallback }: GameProps) {
       cancelled = true;
     };
   }, [room.id, gameStateCallback]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    void patchGameData(room.id, { scoreboard }).catch(console.error);
+  }, [scoreboard, loaded, room.id]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    void patchGameData(room.id, { strikes }).catch(console.error);
+  }, [strikes, loaded, room.id]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    void patchGameData(room.id, { turnTeam }).catch(console.error);
+  }, [turnTeam, loaded, room.id]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    void patchGameData(room.id, { turnIndex }).catch(console.error);
+  }, [turnIndex, loaded, room.id]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    void patchGameData(room.id, { phase }).catch(console.error);
+  }, [phase, loaded, room.id]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -213,6 +249,16 @@ function Game({ room, gameStateCallback }: GameProps) {
     });
   };
 
+  const clearBasesForTeam = (team: TeamKey) => {
+    setScoreboard((prev) => ({
+      ...prev,
+      [team]: {
+        ...prev[team],
+        bases: 0,
+      },
+    }));
+  };
+
   const endTurn = (didWin: boolean) => {
     if (!current) return;
 
@@ -243,10 +289,15 @@ function Game({ room, gameStateCallback }: GameProps) {
       }
 
       setStrikes(nextStrikes);
+      void patchGameData(room.id, { strikes: nextStrikes }).catch(console.error);
       return;
     }
 
     if (nextStrikes >= 3 || activeTeamOutOfFacts) {
+      if (nextStrikes >= 3) {
+        clearBasesForTeam(activeTeam);
+      }
+
       if (nextTeamHasFacts) {
         setTurnTeam(nextTeam);
         setStrikes(0);

@@ -25,6 +25,51 @@
           ".validate": "newData.isString() && (newData.val() === 'phi' || newData.val() === 'oddsEvens')"
         },
 
+        "gameData": {
+          ".read": "auth != null",
+          ".write": "auth.uid === root.child('rooms/'+$code+'/hostUid').val()",
+
+          "strikes": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
+          },
+
+          "turnTeam": {
+            ".validate": "newData.isString() && (newData.val() === 'A' || newData.val() === 'B')"
+          },
+
+          "phase": {
+            ".validate": "newData.isString() && (newData.val() === 'normal' || newData.val() === 'finalChance' || newData.val() === 'done')"
+          },
+
+          "turnIndex": {
+            "A": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "B": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            }
+          },
+
+          "scoreboard": {
+            "A": {
+              "runs": {
+                ".validate": "newData.isNumber() && newData.val() >= 0"
+              },
+              "bases": {
+                ".validate": "newData.isNumber() && newData.val() >= 0"
+              }
+            },
+            "B": {
+              "runs": {
+                ".validate": "newData.isNumber() && newData.val() >= 0"
+              },
+              "bases": {
+                ".validate": "newData.isNumber() && newData.val() >= 0"
+              }
+            }
+          }
+        },
+
         "players": {
           ".read": "auth != null && (root.child('rooms/'+$code+'/players/'+auth.uid).exists() || auth.uid === root.child('rooms/'+$code+'/hostUid').val())",
           "$uid": {
