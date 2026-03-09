@@ -5,6 +5,9 @@ import { roomRefKey } from "@/models/keys";
 import { db } from "@/firebase";
 import { useSubmittersCount } from "@/hooks/useSubmittersCount";
 import QRCode from "react-qr-code";
+import { TEAM_KEYS, type TeamKey, getTeamLabel } from "@/models/team";
+import { useState } from "react";
+import { ROOMFIELDS } from "@/models/room";
 
 interface LobbyProps {
   room: Room;
@@ -12,6 +15,17 @@ interface LobbyProps {
 }
 
 function Lobby({ room, gameStateCallback }: LobbyProps) {
+  const [startingTeam, setStartingTeam] = useState<TeamKey>(room.startingTeam ?? TEAM_KEYS.B);
+  const teamLabel = (team: TeamKey) => getTeamLabel(room.teamMode, team);
+
+  const updateStartingTeam = async (team: TeamKey) => {
+    setStartingTeam(team);
+
+    await update(ref(db, `${roomRefKey}/${room.id}`), {
+      [ROOMFIELDS.STARTINGTEAM]: team,
+    });
+  };
+
   const startGame = async () => {
     gameStateCallback(GAMESTAGES.ACTIVE);
     await update(ref(db, `${roomRefKey}/${room?.id}`), {
@@ -42,6 +56,18 @@ function Lobby({ room, gameStateCallback }: LobbyProps) {
         <p className="text-center text-base mb-2 sm:mb-4 text-slate-600 max-w-xs">
           Scan to join this game directly.
         </p>
+
+        <label className="text-lg font-semibold mb-4 flex flex-col text-center">
+          Starting Team
+          <select
+            value={startingTeam}
+            onChange={(e) => void updateStartingTeam(e.target.value as TeamKey)}
+            className="border-2 border-phidelt-navy cursor-pointer rounded bg-phidelt-navy/20 font-normal text-base px-2 py-1 focus:outline-none mt-2"
+          >
+            <option value={TEAM_KEYS.A}>{teamLabel(TEAM_KEYS.A)}</option>
+            <option value={TEAM_KEYS.B}>{teamLabel(TEAM_KEYS.B)}</option>
+          </select>
+        </label>
 
         <div className="w-full flex justify-center">
           <button 

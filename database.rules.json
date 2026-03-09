@@ -9,6 +9,12 @@
           ".validate": "newData.isString() && newData.val() === auth.uid"
         },
 
+        "startingTeam": {
+          ".read": "auth != null",
+          ".write": "auth != null && (auth.uid === root.child('rooms/'+$code+'/hostUid').val() || auth.uid === newData.parent().child('hostUid').val())",
+          ".validate": "newData.isString() && (newData.val() === 'A' || newData.val() === 'B')"
+        },
+
         "state": {
           ".validate": "newData.isString() && (newData.val() === 'lobby' || newData.val() === 'active' || newData.val() === 'done')"
         },

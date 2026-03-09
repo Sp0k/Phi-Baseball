@@ -2,7 +2,7 @@ import { auth } from "@/firebase";
 import { ref, get, set, serverTimestamp } from "firebase/database";
 import { roomRefKey } from "@/models/keys";
 import { GAMESTAGES } from "@/models/game-stage";
-import { type TeamMode } from "@/models/team";
+import { TEAM_KEYS, type TeamMode } from "@/models/team";
 import { type Database } from "firebase/database";
 
 function generateCode(): string {
@@ -26,6 +26,7 @@ export async function createRoomWithUniqueCode(
     factQuantity,
     createdAt: serverTimestamp(),
     teamMode,
+    startingTeam: TEAM_KEYS.B,
   });
 
   return code;

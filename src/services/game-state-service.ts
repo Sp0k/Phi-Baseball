@@ -15,10 +15,10 @@ export type PersistedGameData = {
   scoreboard: Scoreboard;
 };
 
-export function createDefaultGameData(): PersistedGameData {
+export function createDefaultGameData(startingTeam: TeamKey = TEAM_KEYS.B): PersistedGameData {
   return {
     strikes: 0,
-    turnTeam: TEAM_KEYS.B,
+    turnTeam: startingTeam,
     phase: "normal",
     turnIndex: {
       [TEAM_KEYS.A]: 0,

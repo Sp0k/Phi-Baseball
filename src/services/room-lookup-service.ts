@@ -4,6 +4,7 @@ import { type Room, ROOMFIELDS } from "@/models/room";
 import { getRememberedCode, forgetHostRoom } from "./host-room-pointer-service";
 import { roomRefKey } from "@/models/keys";
 import { GAMESTAGES } from "@/models/game-stage";
+import { TEAM_KEYS } from "@/models/team";
 
 export async function restoreRoomFromStorage(): Promise<Room | null> {
   const uid = auth.currentUser?.uid;
@@ -35,21 +36,23 @@ export async function getRoomFromCode(code: string): Promise<Room | null> {
 
 async function fetchRoomData(code: string): Promise<Room | null> {
   const base = ref(db, `${roomRefKey}/${code}`);
-  const [stateSnap, fqSnap, createdSnap, tmSnap] = await Promise.all([
+  const [stateSnap, fqSnap, createdSnap, tmSnap, stSnap] = await Promise.all([
     get(child(base, ROOMFIELDS.STATE)),
     get(child(base, ROOMFIELDS.FACTQUANTITY)),
     get(child(base, ROOMFIELDS.CREATEDAT)),
     get(child(base, ROOMFIELDS.TEAMMODE)),
+    get(child(base, ROOMFIELDS.STARTINGTEAM)),
   ]);
 
   if (!stateSnap.exists() || stateSnap.val() === GAMESTAGES.DONE) return null;
-  
+
   const room: Room = {
     id: code,
     factQuantity: fqSnap.val(),
     createdAt: createdSnap.val(),
     gameStage: stateSnap.val(),
     teamMode: tmSnap.val(),
+    startingTeam: stSnap.exists() ? stSnap.val() : TEAM_KEYS.B,
   }
 
   return room;

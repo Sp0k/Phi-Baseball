@@ -45,7 +45,7 @@ function Game({ room, gameStateCallback }: GameProps) {
     [TEAM_KEYS.B]: [],
   });
 
-  const [turnTeam, setTurnTeam] = useState<TeamKey>(TEAM_KEYS.B);
+  const [turnTeam, setTurnTeam] = useState<TeamKey>(room.startingTeam ?? TEAM_KEYS.B);
 
   const [turnIndex, setTurnIndex] = useState<Record<TeamKey, number>>({
     [TEAM_KEYS.A]: 0,
@@ -164,7 +164,7 @@ function Game({ room, gameStateCallback }: GameProps) {
       const remainingFacts = allFacts.filter((f) => !used.has(usedKey(f)));
       const byLevel = groupFactsByLevel(remainingFacts);
 
-      const initialGameData = savedGameData ?? createDefaultGameData();
+      const initialGameData = savedGameData ?? createDefaultGameData(room.startingTeam ?? TEAM_KEYS.B);
 
       if (!savedGameData) {
         await setGameData(room.id, initialGameData);
@@ -283,13 +283,18 @@ function Game({ room, gameStateCallback }: GameProps) {
     const nextTeamHasFacts = nextTeamFactsLeft > 0;
 
     if (phase === "finalChance") {
-      if (nextStrikes >= 3 || activeTeamOutOfFacts) {
+      if (nextStrikes >= 3) {
+        clearBasesForTeam(activeTeam);
+        endGame();
+        return;
+      }
+
+      if (activeTeamOutOfFacts) {
         endGame();
         return;
       }
 
       setStrikes(nextStrikes);
-      void patchGameData(room.id, { strikes: nextStrikes }).catch(console.error);
       return;
     }
 
